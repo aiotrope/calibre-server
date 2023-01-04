@@ -6,7 +6,7 @@ import express from 'express'
 import http from 'http'
 import ConnectDB from './utils/database.js'
 import cors from 'cors'
-//import helmet from 'helmet'
+import helmet from 'helmet'
 //import bodyParser from 'body-parser'
 import { typeDefs } from './schema/typeDefs.js'
 import { resolvers } from './schema/resolvers.js'
@@ -32,10 +32,10 @@ const start = async () => {
   app.use(
     '/api',
     cors(),
-    /*  helmet({
+    helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
-    }), */
+    }),
     express.urlencoded({ extended: false }),
     express.json(),
     expressMiddleware(server, {
@@ -59,3 +59,5 @@ const start = async () => {
 }
 
 start()
+
+export default httpServer
