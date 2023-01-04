@@ -125,3 +125,7 @@ dist
 .ionide
 
 .vscode/
+
+build/
+
+dist/
