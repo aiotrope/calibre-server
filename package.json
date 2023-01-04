@@ -1,0 +1,52 @@
+{
+  "name": "calibre-server",
+  "version": "1.0.0",
+  "description": "Part 10",
+  "main": "index.js",
+  "scripts": {
+    "start": "NODE_ENV=production node ./build/index.js",
+    "build": "rimraf build && babel src --out-dir build  --copy-files",
+    "dev": "NODE_ENV=development nodemon --exec babel-node ./src/index.js",
+    "lint": "eslint --ignore-path .eslintignore './src/**/*.{ts,js}'",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier --ignore-path .prettierignore --write \"**/*.+(js|ts|json)\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com-aiotrope:aiotrope/calibre-server.git"
+  },
+  "author": "aiotrope",
+  "dependencies": {
+    "@apollo/server": "^4.3.0",
+    "@babel/runtime": "^7.20.7",
+    "@graphql-tools/schema": "^9.0.12",
+    "bcrypt": "^5.1.0",
+    "body-parser": "^1.20.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "graphql": "^16.6.0",
+    "graphql-subscriptions": "^2.0.0",
+    "graphql-ws": "^5.11.2",
+    "helmet": "^6.0.1",
+    "jsonwebtoken": "^9.0.0",
+    "lodash": "^4.17.21",
+    "mongoose": "^6.8.2",
+    "ws": "^8.11.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.20.7",
+    "@babel/core": "^7.20.7",
+    "@babel/node": "^7.20.7",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
+    "@babel/plugin-transform-runtime": "^7.19.6",
+    "@babel/preset-env": "^7.20.2",
+    "consola": "^2.15.3",
+    "eslint": "^8.31.0",
+    "eslint-config-prettier": "^8.6.0",
+    "nodemon": "^2.0.20",
+    "prettier": "^2.8.1",
+    "rimraf": "^3.0.2"
+  }
+}
