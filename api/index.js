@@ -30,7 +30,7 @@ const start = async () => {
   await server.start()
 
   app.use(
-    '/api',
+    '/',
     cors(),
     helmet({
       contentSecurityPolicy: false,
