@@ -1,6 +1,6 @@
 export const projects = {
   app: {
     schema: ['./schema/typeDefs.js'],
-    documents: ['"src/**/*.{graphql,js,ts,jsx}"'],
+    documents: ['"api/**/*.{graphql,js,ts,jsx}"'],
   },
 }

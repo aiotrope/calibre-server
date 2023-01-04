@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=production node ./build/index.js",
-    "build": "rimraf build && babel src --out-dir build  --copy-files",
-    "dev": "NODE_ENV=development nodemon --exec babel-node ./src/index.js",
-    "lint": "eslint --ignore-path .eslintignore './src/**/*.{ts,js}'",
+    "build": "rimraf build && babel api --out-dir build  --copy-files",
+    "dev": "NODE_ENV=development nodemon --exec babel-node ./api/index.js",
+    "lint": "eslint --ignore-path .eslintignore './api/**/*.{ts,js}'",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --ignore-path .prettierignore --write \"**/*.+(js|ts|json)\""
   },
