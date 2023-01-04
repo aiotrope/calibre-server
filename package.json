@@ -4,8 +4,8 @@
   "description": "Part 10",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=production node ./build/index.js",
-    "build": "rm -rf build && babel api --out-dir build  --copy-files",
+    "start": "NODE_ENV=production node ./public/index.js",
+    "build": "rm -rf public && babel api --out-dir public  --copy-files",
     "dev": "NODE_ENV=development nodemon --exec babel-node ./api/index.js",
     "lint": "eslint --ignore-path .eslintignore './api/**/*.{ts,js}'",
     "lint:fix": "npm run lint -- --fix",

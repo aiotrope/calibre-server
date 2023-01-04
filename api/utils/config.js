@@ -5,7 +5,7 @@ dotenv.config()
 export const port = process.env.PORT
 export const jwt_key = process.env.JWT_KEY
 const mongo_url_dev = process.env.MONGO_URL_DEV
-const mongo_url_prod = process.env.MONGO_URL_PROD
+const mongo_url_prod = process.env.MONGODB_URI
 
 export const environment = {
   development: {

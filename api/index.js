@@ -7,7 +7,7 @@ import http from 'http'
 import ConnectDB from './utils/database.js'
 import cors from 'cors'
 import helmet from 'helmet'
-//import bodyParser from 'body-parser'
+import bodyParser from 'body-parser'
 import { typeDefs } from './schema/typeDefs.js'
 import { resolvers } from './schema/resolvers.js'
 import consola from 'consola'
@@ -30,14 +30,13 @@ const start = async () => {
   await server.start()
 
   app.use(
-    '/',
+    '/api',
     cors(),
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
     }),
-    express.urlencoded({ extended: false }),
-    express.json(),
+    bodyParser.json(),
     expressMiddleware(server, {
       context: async ({ req }) => {
         const auth = req ? req.headers.authorization : null
