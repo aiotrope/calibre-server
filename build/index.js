@@ -1,6 +1,10 @@
 "use strict";
 
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _server = require("@apollo/server");
@@ -10,6 +14,7 @@ var _express2 = _interopRequireDefault(require("express"));
 var _http = _interopRequireDefault(require("http"));
 var _database = _interopRequireDefault(require("./utils/database.js"));
 var _cors = _interopRequireDefault(require("cors"));
+var _helmet = _interopRequireDefault(require("helmet"));
 var _typeDefs = require("./schema/typeDefs.js");
 var _resolvers = require("./schema/resolvers.js");
 var _consola = _interopRequireDefault(require("consola"));
@@ -18,7 +23,6 @@ var _jsonwebtoken = _interopRequireDefault(require("jsonwebtoken"));
 var _user = _interopRequireDefault(require("./models/user.js"));
 //import { ApolloServerErrorCode } from '@apollo/server/errors'
 
-//import helmet from 'helmet'
 //import bodyParser from 'body-parser'
 
 var app = (0, _express2.default)();
@@ -38,12 +42,10 @@ var start = /*#__PURE__*/function () {
           _context3.next = 2;
           return server.start();
         case 2:
-          app.use('/api', (0, _cors.default)(),
-          /*  helmet({
+          app.use('/api', (0, _cors.default)(), (0, _helmet.default)({
             contentSecurityPolicy: false,
-            crossOriginEmbedderPolicy: false,
-          }), */
-          _express2.default.urlencoded({
+            crossOriginEmbedderPolicy: false
+          }), _express2.default.urlencoded({
             extended: false
           }), _express2.default.json(), (0, _express.expressMiddleware)(server, {
             context: function () {
@@ -94,3 +96,5 @@ var start = /*#__PURE__*/function () {
   };
 }();
 start();
+var _default = httpServer;
+exports.default = _default;
