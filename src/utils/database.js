@@ -2,8 +2,7 @@ import { environment } from './config.js'
 import mongoose from 'mongoose'
 import consola from 'consola'
 
-
-const MongoDatabase = () => {
+const ConnectDB = async () => {
   mongoose.set('strictQuery', false)
   const env = process.env.NODE_ENV || 'development'
 
@@ -15,16 +14,13 @@ const MongoDatabase = () => {
     useUnifiedTopology: true,
   }
 
-  mongoose.connect(dbURL, opts)
-
-  const db = mongoose.connection
-  db.once('open', () => {
-    consola.success(`Database connected: ${dbURL}`)
-  })
-
-  db.on('error', (error) => {
+  try {
+    const conn = await mongoose.connect(dbURL, opts)
+    consola.info(`MongoDB Connected: ${conn.connection.host}`)
+  } catch (error) {
     consola.error(`connection error: ${error}`)
-  })
+    process.exit(1)
+  }
 }
 
-export default MongoDatabase
+export default ConnectDB

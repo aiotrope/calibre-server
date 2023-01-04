@@ -16,9 +16,7 @@ import { jwt_key } from './utils/config.js'
 import { port } from './utils/config.js'
 import { typeDefs } from './schema/typeDefs.js'
 import { resolvers } from './schema/resolvers.js'
-import MongoDatabase from './utils/database.js'
-
-MongoDatabase()
+import ConnectDB from './utils/database.js'
 
 const start = async () => {
   const app = express()
@@ -74,8 +72,10 @@ const start = async () => {
     })
   )
 
-  httpServer.listen(port, () => {
-    consola.info(`🚀 Server ready at http://localhost:${port}/`)
+  ConnectDB().then(() => {
+    httpServer.listen(port, () => {
+      consola.info(`🚀 Server ready at http://localhost:${port}/`)
+    })
   })
 }
 
