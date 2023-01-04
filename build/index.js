@@ -21,7 +21,6 @@ var _config = require("./utils/config.js");
 var _typeDefs = require("./schema/typeDefs.js");
 var _resolvers = require("./schema/resolvers.js");
 var _database = _interopRequireDefault(require("./utils/database.js"));
-(0, _database.default)();
 var start = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
     var app, httpServer, schema, wsServer, serverCleanup, server;
@@ -116,8 +115,10 @@ var start = /*#__PURE__*/function () {
               return context;
             }()
           }));
-          httpServer.listen(_config.port, function () {
-            _consola.default.info("\uD83D\uDE80 Server ready at http://localhost:".concat(_config.port, "/"));
+          (0, _database.default)().then(function () {
+            httpServer.listen(_config.port, function () {
+              _consola.default.info("\uD83D\uDE80 Server ready at http://localhost:".concat(_config.port, "/"));
+            });
           });
         case 10:
         case "end":
