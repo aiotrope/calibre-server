@@ -6,9 +6,10 @@ import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import express from 'express'
 import http from 'http'
+import * as path from 'path'
 import cors from 'cors'
 import helmet from 'helmet'
-import bodyParser from 'body-parser'
+//import bodyParser from 'body-parser'
 import jwt from 'jsonwebtoken'
 import User from './models/user.js'
 import consola from 'consola'
@@ -18,10 +19,16 @@ import { typeDefs } from './schema/typeDefs.js'
 import { resolvers } from './schema/resolvers.js'
 import ConnectDB from './utils/database.js'
 
+import indexRouter from './routes/index.js'
+
 ConnectDB()
 
 const start = async () => {
   const app = express()
+
+  // view engine setup
+  app.set('views', path.join(__dirname, 'views'))
+  app.set('view engine', 'ejs')
 
   const httpServer = http.createServer(app)
 
@@ -56,11 +63,9 @@ const start = async () => {
   app.use(
     '/api',
     cors(),
-    helmet({
-      contentSecurityPolicy: false,
-      crossOriginEmbedderPolicy: false,
-    }),
-    bodyParser.json(),
+    helmet(),
+    express.json(),
+    express.static(path.join(__dirname, 'public')),
     expressMiddleware(server, {
       context: async ({ req }) => {
         const authHeader = req.headers['authorization']
@@ -72,6 +77,17 @@ const start = async () => {
         }
       },
     })
+  )
+
+  app.use(
+    '/',
+    cors(),
+    express.json(),
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    }),
+    indexRouter
   )
 
   httpServer.listen(port, () => {
