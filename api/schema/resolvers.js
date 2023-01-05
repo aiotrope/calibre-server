@@ -1,5 +1,4 @@
 import { jwt_key } from '../utils/config.js'
-//import { PubSub } from 'graphql-subscriptions'
 import { GraphQLError } from 'graphql'
 import mongoose from 'mongoose'
 import jwt from 'jsonwebtoken'
@@ -7,11 +6,6 @@ import bcrypt from 'bcrypt'
 import consola from 'consola'
 import User from '../models/user.js'
 import Repository from '../models/repository.js'
-
-//import pkg from 'lodash'
-
-//const pubsub = new PubSub()
-//const { countBy, filter, map, includes } = pkg
 
 export const resolvers = {
   Query: {
