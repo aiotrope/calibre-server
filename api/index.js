@@ -1,32 +1,56 @@
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer'
-//import { ApolloServerErrorCode } from '@apollo/server/errors'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { WebSocketServer } from 'ws'
+import { useServer } from 'graphql-ws/lib/use/ws'
 import express from 'express'
 import http from 'http'
-import ConnectDB from './utils/database.js'
 import cors from 'cors'
 import helmet from 'helmet'
 import bodyParser from 'body-parser'
-import { typeDefs } from './schema/typeDefs.js'
-import { resolvers } from './schema/resolvers.js'
-import consola from 'consola'
-import { port } from './utils/config.js'
-import { jwt_key } from './utils/config.js'
 import jwt from 'jsonwebtoken'
 import User from './models/user.js'
+import consola from 'consola'
+import { jwt_key } from './utils/config.js'
+import { port } from './utils/config.js'
+import { typeDefs } from './schema/typeDefs.js'
+import { resolvers } from './schema/resolvers.js'
+import ConnectDB from './utils/database.js'
 
-const app = express()
-
-const httpServer = http.createServer(app)
-
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-})
+ConnectDB()
 
 const start = async () => {
+  const app = express()
+
+  const httpServer = http.createServer(app)
+
+  const schema = makeExecutableSchema({ typeDefs, resolvers })
+
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: '/api',
+  })
+
+  const serverCleanup = useServer({ schema }, wsServer)
+
+  const server = new ApolloServer({
+    schema,
+    plugins: [
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              await serverCleanup.dispose()
+            },
+          }
+        },
+      },
+    ],
+  })
+
   await server.start()
 
   app.use(
@@ -39,24 +63,20 @@ const start = async () => {
     bodyParser.json(),
     expressMiddleware(server, {
       context: async ({ req }) => {
-        const auth = req ? req.headers.authorization : null
-        if (auth && auth.toLowerCase().startsWith('bearer')) {
-          const decodedToken = jwt.verify(auth.substring(7), jwt_key)
-          const authUser = await User.findById(decodedToken.id)
-
+        const authHeader = req.headers['authorization']
+        const token = authHeader && authHeader.split(' ')[1]
+        if (token) {
+          const decoded = jwt.verify(token, jwt_key)
+          const authUser = await User.findById(decoded.id)
           return { authUser }
         }
       },
     })
   )
 
-  ConnectDB().then(() => {
-    httpServer.listen(port, () => {
-      consola.info(`🚀 Server ready at http://localhost:${port}/`)
-    })
+  httpServer.listen(port, () => {
+    consola.info(`🚀 Server ready at http://localhost:${port}/`)
   })
 }
 
 start()
-
-export default httpServer
