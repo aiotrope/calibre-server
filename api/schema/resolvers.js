@@ -1,11 +1,13 @@
 import { jwt_key } from '../utils/config.js'
 //import { PubSub } from 'graphql-subscriptions'
 import { GraphQLError } from 'graphql'
-import User from '../models/user.js'
+import mongoose from 'mongoose'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import consola from 'consola'
-//import mongoose from 'mongoose'
+import User from '../models/user.js'
+import Repository from '../models/repository.js'
+
 //import pkg from 'lodash'
 
 //const pubsub = new PubSub()
@@ -13,17 +15,96 @@ import consola from 'consola'
 
 export const resolvers = {
   Query: {
-    users: async () => {
+    users: async (_, __, contextValue) => {
+      const authUser = contextValue.authUser
+      if (!authUser) {
+        throw new GraphQLError('User is not authenticated', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+            http: { status: 401 },
+          },
+        })
+      }
+
       try {
-        const users = await User.find({})
+        const users = await User.find({}).populate('repositories')
+
         return users
       } catch (error) {
-        consola.error(error.message)
+        throw new GraphQLError(
+          `Can't processed users request: ${error.message}!`,
+          {
+            extensions: { code: 'BAD_REQUEST' },
+          }
+        )
       }
     },
-    user: async (parent, args) => {
-      const user = await User.findById(args.id)
-      return user
+    user: async (_, args, contextValue) => {
+      const authUser = contextValue.authUser
+      if (!authUser) {
+        throw new GraphQLError('User is not authenticated', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+            http: { status: 401 },
+          },
+        })
+      }
+      try {
+        const user = await User.findById(args.id).populate('repositories')
+        return user
+      } catch (error) {
+        throw new GraphQLError(
+          `Can't processed user with ${args.id}: ${error.message}`,
+          {
+            extensions: { code: 'BAD_REQUEST' },
+          }
+        )
+      }
+    },
+    repositories: async (_, __, contextValue) => {
+      const authUser = contextValue.authUser
+      if (!authUser) {
+        throw new GraphQLError('User is not authenticated', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+            http: { status: 401 },
+          },
+        })
+      }
+
+      try {
+        const repos = await Repository.find({}).populate('user')
+        return repos
+      } catch (error) {
+        throw new GraphQLError(
+          `Can't processed users request: ${error.message}!`,
+          {
+            extensions: { code: 'BAD_REQUEST' },
+          }
+        )
+      }
+    },
+    repository: async (_, args, contextValue) => {
+      const authUser = contextValue.authUser
+      if (!authUser) {
+        throw new GraphQLError('User is not authenticated', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+            http: { status: 401 },
+          },
+        })
+      }
+      try {
+        const repo = await Repository.findById(args.id).populate('user')
+        return repo
+      } catch (error) {
+        throw new GraphQLError(
+          `Can't processed user with ${args.id}: ${error.message}`,
+          {
+            extensions: { code: 'BAD_REQUEST' },
+          }
+        )
+      }
     },
   },
   Mutation: {
@@ -137,6 +218,83 @@ export const resolvers = {
           extensions: { code: 'BAD_REQUEST' },
         })
       }
+    },
+    createRepository: async (_, args, contextValue) => {
+      const authUser = contextValue.authUser
+      if (!authUser) {
+        throw new GraphQLError('User is not authenticated', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+            http: { status: 401 },
+          },
+        })
+      }
+
+      try {
+        const repo = new Repository({
+          ...args.repositoryInput,
+          user: mongoose.Types.ObjectId(authUser.id),
+        })
+        const newRepo = await Repository.create(repo)
+        if (newRepo) {
+          authUser.repositories = authUser.repositories.concat(newRepo)
+          await authUser.save()
+        }
+
+        return newRepo
+      } catch (error) {
+        throw new GraphQLError(`Error: ${error.message}`, {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            http: { status: 400 },
+            arguementName: args,
+          },
+        })
+      }
+    },
+  },
+  User: {
+    id: async (parent) => {
+      return parent.id
+    },
+    username: async (parent) => {
+      return parent.username
+    },
+    repositories: async (parent) => {
+      return parent.repositories
+    },
+  },
+  Repository: {
+    id: async (parent) => {
+      return parent.id
+    },
+    fullName: async (parent) => {
+      return parent.fullName
+    },
+    description: async (parent) => {
+      return parent.description
+    },
+    language: async (parent) => {
+      return parent.language
+    },
+    forksCount: async (parent) => {
+      return parent.forksCount
+    },
+    stargazersCount: async (parent) => {
+      return parent.stargazersCount
+    },
+    ratingAverage: async (parent) => {
+      return parent.ratingAverage
+    },
+    reviewCount: async (parent) => {
+      return parent.reviewCount
+    },
+    ownerAvatarUrl: async (parent) => {
+      return parent.ownerAvatarUrl
+    },
+    user: async (parent) => {
+      const maker = await User.findById(parent.user).populate('repositories')
+      return maker
     },
   },
 }

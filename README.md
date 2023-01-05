@@ -5,4 +5,6 @@ Date: 4.1.2023
 
 ## Branches
 
-- [Signup and SignIn](https://github.com/aiotrope/calibre-server/tree/10.1)
+- [Initial](https://github.com/aiotrope/calibre-server/tree/10.1)
+
+- [Backend Setup & Deployment](https://github.com/aiotrope/calibre-server/tree/10.4)

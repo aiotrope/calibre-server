@@ -18,6 +18,12 @@ const UserSchema = new Schema(
       },
     },
     passwordHash: { type: String },
+    repositories: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Repository',
+      },
+    ],
   },
   { timestamps: true }
 )
@@ -33,4 +39,4 @@ UserSchema.set('toJSON', {
 
 const User = model('User', UserSchema)
 
-module.exports = User
+export default User

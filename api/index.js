@@ -9,7 +9,7 @@ import http from 'http'
 import * as path from 'path'
 import cors from 'cors'
 import helmet from 'helmet'
-//import bodyParser from 'body-parser'
+import bodyParser from 'body-parser'
 import jwt from 'jsonwebtoken'
 import User from './models/user.js'
 import consola from 'consola'
@@ -63,9 +63,11 @@ const start = async () => {
   app.use(
     '/api',
     cors(),
-    helmet(),
-    express.json(),
-    express.static(path.join(__dirname, 'public')),
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    }),
+    bodyParser.json(),
     expressMiddleware(server, {
       context: async ({ req }) => {
         const authHeader = req.headers['authorization']
@@ -73,6 +75,7 @@ const start = async () => {
         if (token) {
           const decoded = jwt.verify(token, jwt_key)
           const authUser = await User.findById(decoded.id)
+            .populate('repositories')
           return { authUser }
         }
       },
@@ -81,6 +84,7 @@ const start = async () => {
 
   app.use(
     '/',
+    express.static(path.join(__dirname, 'public')),
     cors(),
     express.json(),
     helmet({
