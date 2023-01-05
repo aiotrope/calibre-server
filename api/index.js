@@ -6,7 +6,6 @@ import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import express from 'express'
 import http from 'http'
-import * as path from 'path'
 import cors from 'cors'
 import helmet from 'helmet'
 import bodyParser from 'body-parser'
@@ -25,10 +24,6 @@ ConnectDB()
 
 const start = async () => {
   const app = express()
-
-  // view engine setup
-  app.set('views', path.join(__dirname, 'views'))
-  app.set('view engine', 'ejs')
 
   const httpServer = http.createServer(app)
 
@@ -83,17 +78,7 @@ const start = async () => {
     })
   )
 
-  app.use(
-    '/',
-    express.static(path.join(__dirname, 'public')),
-    cors(),
-    express.json(),
-    helmet({
-      contentSecurityPolicy: false,
-      crossOriginEmbedderPolicy: false,
-    }),
-    indexRouter
-  )
+  app.use('/', indexRouter)
 
   httpServer.listen(port, () => {
     consola.info(`🚀 Server ready at http://localhost:${port}/`)
