@@ -18,7 +18,7 @@ import { typeDefs } from './schema/typeDefs.js'
 import { resolvers } from './schema/resolvers.js'
 import ConnectDB from './utils/database.js'
 
-import indexRouter from './routes/index.js'
+//import indexRouter from './routes/index.js'
 
 ConnectDB()
 
@@ -78,7 +78,14 @@ const start = async () => {
     })
   )
 
-  app.use('/', indexRouter)
+  //app.use('/', indexRouter)
+  app.get('/', (req, res) => {
+    res.setHeader('Content-Type', 'text/html')
+    res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate')
+    res.end(
+      `Hello! Welcome to Calibre GraphQL API. Go to this link: <a href="https://calibre-server.vercel.app/api">API</a>`
+    )
+  })
 
   httpServer.listen(port, () => {
     consola.info(`🚀 Server ready at http://localhost:${port}/`)
