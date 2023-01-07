@@ -1,22 +1,26 @@
+import React from 'react'
 import { View, StyleSheet } from 'react-native'
-//import { SafeAreaView } from 'react-native-safe-area-context'
-//import Constants from 'expo-constants'
+import { Link } from 'react-router-native'
 
 import Text from './Text'
 
 const AppBar = () => {
   return (
     <View style={styles.container}>
-      <View>
-        <Text fontWeight="bold" color="texSecondary" fontSize="subheading">
+      <Link to="/" underlayColor="none">
+        <Text fontWeight="bold" color="textPrimary" fontSize="title">
           Repositories
         </Text>
-      </View>
-      <View style={styles.login}>
-        <Text style={styles.button}>
-          Login
+      </Link>
+      <Link
+        to="/signin"
+        style={styles.login}
+        underlayColor="none"
+      >
+        <Text style={styles.button} fontWeight="bold" color="texSecondary">
+          Sign In
         </Text>
-      </View>
+      </Link>
     </View>
   )
 }
@@ -27,22 +31,24 @@ const styles = StyleSheet.create({
     borderBottomColor: '#EDF2FA',
     borderBottomWidth: 5,
     display: 'flex',
-    flexDirection: 'row'
+    flexDirection: 'row',
+    flexGrow: 1,
+    flexShrink: 1,
   },
   login: {
-    paddingLeft: 145
+    paddingLeft: 100,
   },
   button: {
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 4,
-    backgroundColor: "#EDF2FA",
-    alignSelf: "flex-start",
-    marginHorizontal: "1%",
+    backgroundColor: '#EDF2FA',
+    alignSelf: 'flex-start',
+    marginHorizontal: '1%',
     marginBottom: 6,
-    minWidth: "48%",
-    textAlign: "center",
-  }
+    minWidth: '48%',
+    textAlign: 'center',
+  },
 })
 
 export default AppBar

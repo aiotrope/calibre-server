@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { NativeRouter } from 'react-router-native'
 import { ApolloProvider } from '@apollo/client'
 import { StatusBar } from 'expo-status-bar'
@@ -10,14 +11,16 @@ const apolloClient = client()
 
 const App = () => {
   return (
-    <NativeRouter>
-      <ApolloProvider client={apolloClient}>
-        <SafeAreaProvider>
-          <Main />
-          <StatusBar style="auto" />
-        </SafeAreaProvider>
-      </ApolloProvider>
-    </NativeRouter>
+    <>
+      <NativeRouter>
+        <ApolloProvider client={apolloClient}>
+          <SafeAreaProvider>
+            <Main />
+          </SafeAreaProvider>
+        </ApolloProvider>
+      </NativeRouter>
+      <StatusBar style="auto" />
+    </>
   )
 }
 
