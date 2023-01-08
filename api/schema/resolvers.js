@@ -33,7 +33,7 @@ export const resolvers = {
         )
       }
     },
-    user: async (_, args, contextValue) => {
+    me: async (_, args, contextValue) => {
       const authUser = contextValue.authUser
       if (!authUser) {
         throw new GraphQLError('User is not authenticated', {
@@ -44,8 +44,7 @@ export const resolvers = {
         })
       }
       try {
-        const user = await User.findById(args.id).populate('repositories')
-        return user
+        return authUser
       } catch (error) {
         throw new GraphQLError(
           `Can't processed user with ${args.id}: ${error.message}`,

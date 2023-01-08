@@ -1,54 +1,56 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Link } from 'react-router-native'
+import { useNavigate } from 'react-router-native'
+import { useApolloClient } from '@apollo/client'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Appbar as TopNav } from 'react-native-paper'
 
-import Text from './Text'
+import { AuthStorageContext } from '../contexts/AuthContext'
 
 const AppBar = () => {
+  const { token, setToken } = React.useContext(AuthStorageContext)
+
+  const client = useApolloClient()
+  const navigate = useNavigate()
+  const onSignIn = () => {
+    navigate('/signin')
+  }
+
+  React.useEffect(() => {
+    if (token === null || Object.keys(token).length === 0) {
+      navigate('/signin')
+    }
+  }, [token])
+
+  const onSignOut = async () => {
+    try {
+      client.resetStore()
+      setToken(null)
+      await AsyncStorage.removeItem('auth')
+      const accessToken = await AsyncStorage.getItem('auth')
+      if (accessToken === null && token === null) {
+        navigate('/signin')
+      }
+    } catch (error) {
+      console.error(error)
+    }
+    console.log('Done.')
+  }
+
+  if (token === null) {
+    return (
+      <TopNav.Header>
+        <TopNav.Content title="Title" />
+        <TopNav.Action icon="login-variant" onPress={onSignIn} />
+      </TopNav.Header>
+    )
+  }
+
   return (
-    <View style={styles.container}>
-      <Link to="/" underlayColor="none">
-        <Text fontWeight="bold" color="textPrimary" fontSize="title">
-          Repositories
-        </Text>
-      </Link>
-      <Link
-        to="/signin"
-        style={styles.login}
-        underlayColor="none"
-      >
-        <Text style={styles.button} fontWeight="bold" color="texSecondary">
-          Sign In
-        </Text>
-      </Link>
-    </View>
+    <TopNav.Header>
+      <TopNav.Content title="Repositories" />
+      <TopNav.Action icon="home" onPress={onSignOut} />
+    </TopNav.Header>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    borderBottomColor: '#EDF2FA',
-    borderBottomWidth: 5,
-    display: 'flex',
-    flexDirection: 'row',
-    flexGrow: 1,
-    flexShrink: 1,
-  },
-  login: {
-    paddingLeft: 100,
-  },
-  button: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 4,
-    backgroundColor: '#EDF2FA',
-    alignSelf: 'flex-start',
-    marginHorizontal: '1%',
-    marginBottom: 6,
-    minWidth: '48%',
-    textAlign: 'center',
-  },
-})
 
 export default AppBar

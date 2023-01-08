@@ -1,13 +1,31 @@
 import * as React from 'react'
+import { Platform } from 'react-native'
 import { NativeRouter } from 'react-router-native'
 import { ApolloProvider } from '@apollo/client'
 import { StatusBar } from 'expo-status-bar'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import {
+  configureFonts,
+  MD3LightTheme,
+  Provider as PaperProvider,
+} from 'react-native-paper'
 
 import Main from './src/components/Main'
-import client from './src/utils/client'
+//import { fontConfig } from './src/utils/fontConfig'
+import createApolloClient from './src/utils/apolloClient'
+import { AuthStorageProvider } from './src/contexts/AuthContext'
 
-const apolloClient = client()
+//onst authStorage = new AuthStorage()
+const apolloClient = createApolloClient()
+
+const fontConfig = {
+  fontFamily: Platform.OS === 'android' ? 'Roboto' : 'System',
+}
+
+const theme = {
+  ...MD3LightTheme,
+  fonts: configureFonts({ config: fontConfig }),
+}
 
 const App = () => {
   return (
@@ -15,7 +33,11 @@ const App = () => {
       <NativeRouter>
         <ApolloProvider client={apolloClient}>
           <SafeAreaProvider>
-            <Main />
+            <PaperProvider theme={theme}>
+              <AuthStorageProvider>
+                <Main />
+              </AuthStorageProvider>
+            </PaperProvider>
           </SafeAreaProvider>
         </ApolloProvider>
       </NativeRouter>

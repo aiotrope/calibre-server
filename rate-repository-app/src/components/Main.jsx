@@ -1,25 +1,38 @@
 import * as React from 'react'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Routes, Route, Navigate } from 'react-router-native'
 
 import AppBar from './AppBar'
+import BottomNav from './BottomNav'
 import RepositoryList from './RepositoryList'
 import SignIn from './SignIn'
 import SignUp from './SignUp'
 
 const Main = () => {
+  const isComponentMounted = React.useRef(true)
+
+  React.useEffect(() => {
+    return () => {
+      isComponentMounted.current = false
+    }
+  }, [])
+
   return (
     <SafeAreaView>
       <AppBar />
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         <Routes>
           <Route path="/" element={<RepositoryList />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/signin" element={<SignIn />} />
+          <Route
+            path="/signin"
+            element={<SignIn mounted={isComponentMounted} />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </View>
+      </ScrollView>
+      <BottomNav />
     </SafeAreaView>
   )
 }
@@ -30,8 +43,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexShrink: 1,
     padding: 20,
-    minHeight: 1000,
-    backgroundColor: '#F7FBFB',
+    minHeight: 665,
   },
 })
 

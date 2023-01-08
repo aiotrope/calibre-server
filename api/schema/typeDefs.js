@@ -39,7 +39,7 @@ export const typeDefs = `#graphql
 
     type Query {
         users: [User]!
-        user(id: ID!): User!
+        me: User!
         repositories: [Repository!]!
         repository(id: ID!): Repository!
     }
