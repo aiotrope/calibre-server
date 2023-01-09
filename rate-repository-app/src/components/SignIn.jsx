@@ -6,6 +6,7 @@ import { Text, TextInput, Button } from 'react-native-paper'
 import { Link, useNavigate } from 'react-router-native'
 import { Formik, useField } from 'formik'
 import * as yup from 'yup'
+import Spinner from 'react-native-loading-spinner-overlay'
 
 import { LOGIN } from '../graphql/mutations'
 import { AuthStorageContext } from '../contexts/AuthContext'
@@ -67,30 +68,70 @@ const SignInForm = ({ onSubmit }) => {
   )
 }
 
-const SignIn = ({ mounted }) => {
-  const [login, { data }] = useMutation(LOGIN)
+const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
+  const [login, { loading, error, data }] = useMutation(LOGIN)
   const { setToken } = React.useContext(AuthStorageContext)
   const navigate = useNavigate()
 
   React.useEffect(() => {
-    const storeData = async () => {
+    const prepare = async () => {
       try {
         if (mounted && data?.login) {
+          setSuccessMessage(data?.login?.successLoginMessage)
           const token = data?.login?.token
           await AsyncStorage.setItem('auth', token)
           const accessToken = await AsyncStorage.getItem('auth')
           if (accessToken !== null) {
-            setToken(accessToken)
-            navigate('/')
-
+            let timer
+            timer = setTimeout(() => {
+              setSuccessMessage('')
+              setToken(accessToken)
+              navigate('/')
+              clearTimeout(timer)
+            },4000)
+            
           }
         }
       } catch (error) {
-        console.error(error)
+        console.log(error)
+        setErrorMessage(error)
+        let timer
+        timer = setTimeout(() => {
+          setErrorMessage('')
+          navigate('/signin')
+          clearTimeout(timer)
+        },8000)
       }
     }
-    storeData()
+    prepare()
   }, [data?.login, mounted])
+
+   React.useEffect(() => {
+    if (mounted && error) {
+      setErrorMessage(error?.message)
+      let timer
+      timer = setTimeout(() => {
+        setErrorMessage('')
+        navigate('/signin')
+        clearTimeout(timer)
+      }, 9000)
+    }
+    if (
+      mounted &&
+      error?.message ===
+        'Cannot read properties of null (reading \'passwordHash\')'
+    ) {
+      setErrorMessage(
+        'Wrong credentials! Check if you entered your username or password correctly'
+      )
+      let timer
+      timer = setTimeout(() => {
+        setErrorMessage('')
+        navigate('/signin')
+        clearTimeout(timer)
+      }, 9000)
+    }
+  }, [error, mounted, navigate, setErrorMessage])
 
   const onSubmit = async (values, { resetForm, setStatus }) => {
     const { username, password } = values
@@ -103,7 +144,16 @@ const SignIn = ({ mounted }) => {
     }
   }
 
-  //console.log(token)
+  if (loading) {
+    return (
+      <Spinner
+        visible={true}
+        textContent={'Stand by...'}
+        textStyle={styles.spinnerTextStyle}
+      />
+    )
+  }
+
   return (
     <View>
       <Text style={styles.container} variant="headlineSmall">
@@ -119,7 +169,7 @@ const SignIn = ({ mounted }) => {
       <View style={{ marginTop: 20 }}>
         <Link to={'/signup'} underlayColor="none">
           <Text style={{ textAlign: 'center' }} variant="bodyLarge">
-            Need an account
+            New to Calibre?
           </Text>
         </Link>
       </View>
@@ -148,6 +198,9 @@ const styles = StyleSheet.create({
     margin: 5,
     color: 'red',
     paddingLeft: 15,
+  },
+  spinnerTextStyle: {
+    color: '#FFFFF',
   },
 })
 

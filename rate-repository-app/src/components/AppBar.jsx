@@ -8,9 +8,9 @@ import { AuthStorageContext } from '../contexts/AuthContext'
 
 const AppBar = () => {
   const { token, setToken } = React.useContext(AuthStorageContext)
-
   const client = useApolloClient()
   const navigate = useNavigate()
+
   const onSignIn = () => {
     navigate('/signin')
   }
@@ -33,23 +33,22 @@ const AppBar = () => {
     } catch (error) {
       console.error(error)
     }
-    console.log('Done.')
-  }
-
-  if (token === null) {
-    return (
-      <TopNav.Header>
-        <TopNav.Content title="Title" />
-        <TopNav.Action icon="login-variant" onPress={onSignIn} />
-      </TopNav.Header>
-    )
   }
 
   return (
-    <TopNav.Header>
-      <TopNav.Content title="Repositories" />
-      <TopNav.Action icon="home" onPress={onSignOut} />
-    </TopNav.Header>
+    <>
+      {token !== null && Object.keys(token).length !== 0 ? (
+        <TopNav.Header>
+          <TopNav.Content title="Repositories" />
+          <TopNav.Action icon="logout" size={28} onPress={onSignOut} />
+        </TopNav.Header>
+      ) : (
+        <TopNav.Header>
+          <TopNav.Content title="Calibre" />
+          <TopNav.Action icon="login" size={28} onPress={onSignIn} />
+        </TopNav.Header>
+      )}
+    </>
   )
 }
 

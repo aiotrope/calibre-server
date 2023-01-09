@@ -12,3 +12,5 @@ Date: 4.1.2023
 - [Initialize Frontend](https://github.com/aiotrope/calibre-server/tree/10.5)
 
 - [Login](https://github.com/aiotrope/calibre-server/tree/10.7)
+
+- [Login/Logout & Notification](https://github.com/aiotrope/calibre-server/tree/10.8)

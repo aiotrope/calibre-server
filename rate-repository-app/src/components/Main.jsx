@@ -8,8 +8,11 @@ import BottomNav from './BottomNav'
 import RepositoryList from './RepositoryList'
 import SignIn from './SignIn'
 import SignUp from './SignUp'
+import Notification from './Notification'
 
 const Main = () => {
+  const [successMessage, setSuccessMessage] = React.useState('')
+  const [errorMessage, setErrorMessage] = React.useState('')
   const isComponentMounted = React.useRef(true)
 
   React.useEffect(() => {
@@ -21,13 +24,20 @@ const Main = () => {
   return (
     <SafeAreaView>
       <AppBar />
+    <Notification error={errorMessage} success={successMessage} />
       <ScrollView style={styles.container}>
         <Routes>
           <Route path="/" element={<RepositoryList />} />
           <Route path="/signup" element={<SignUp />} />
           <Route
             path="/signin"
-            element={<SignIn mounted={isComponentMounted} />}
+            element={
+              <SignIn
+                mounted={isComponentMounted}
+                setSuccessMessage={setSuccessMessage}
+                setErrorMessage={setErrorMessage} 
+              />
+            }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -43,7 +53,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexShrink: 1,
     padding: 20,
-    minHeight: 665,
+    minHeight: 643,
+    backgroundColor: '#FFFFFF',
   },
 })
 
