@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { StyleSheet, ScrollView } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Routes, Route, Navigate } from 'react-router-native'
 
@@ -9,10 +9,12 @@ import RepositoryList from './RepositoryList'
 import SignIn from './SignIn'
 import SignUp from './SignUp'
 import Notification from './Notification'
+import Profile from './Profile'
 
 const Main = () => {
   const [successMessage, setSuccessMessage] = React.useState('')
   const [errorMessage, setErrorMessage] = React.useState('')
+
   const isComponentMounted = React.useRef(true)
 
   React.useEffect(() => {
@@ -24,24 +26,42 @@ const Main = () => {
   return (
     <SafeAreaView>
       <AppBar />
-    <Notification error={errorMessage} success={successMessage} />
-      <ScrollView style={styles.container}>
+      <Notification error={errorMessage} success={successMessage} />
+      <View style={styles.container}>
         <Routes>
           <Route path="/" element={<RepositoryList />} />
-          <Route path="/signup" element={<SignUp />} />
+          <Route
+            path="/signup"
+            element={
+              <SignUp
+                mounted={isComponentMounted}
+                setErrorMessage={setErrorMessage}
+                setSuccessMessage={setSuccessMessage}
+              />
+            }
+          />
           <Route
             path="/signin"
             element={
               <SignIn
                 mounted={isComponentMounted}
                 setSuccessMessage={setSuccessMessage}
-                setErrorMessage={setErrorMessage} 
+                setErrorMessage={setErrorMessage}
+              />
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <Profile
+                mounted={isComponentMounted}
+                setErrorMessage={setErrorMessage}
               />
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </ScrollView>
+      </View>
       <BottomNav />
     </SafeAreaView>
   )

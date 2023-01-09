@@ -11,11 +11,9 @@ import {
 } from 'react-native-paper'
 
 import Main from './src/components/Main'
-//import { fontConfig } from './src/utils/fontConfig'
 import createApolloClient from './src/utils/apolloClient'
 import { AuthStorageProvider } from './src/contexts/AuthContext'
 
-//onst authStorage = new AuthStorage()
 const apolloClient = createApolloClient()
 
 const fontConfig = {

@@ -23,3 +23,23 @@ export const ME = gql`
     }
   }
 `
+
+export const REPOSITORIES = gql`
+  query REPOSITORIES {
+    repositories {
+      id
+      fullName
+      description
+      language
+      forksCount
+      stargazersCount
+      ratingAverage
+      reviewCount
+      ownerAvatarUrl
+      user {
+        id
+        username
+      }
+    }
+  }
+`

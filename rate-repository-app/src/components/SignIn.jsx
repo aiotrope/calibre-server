@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { useMutation } from '@apollo/client'
+import { useMutation, useApolloClient } from '@apollo/client'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Text, TextInput, Button } from 'react-native-paper'
 import { Link, useNavigate } from 'react-router-native'
@@ -9,6 +9,7 @@ import * as yup from 'yup'
 import Spinner from 'react-native-loading-spinner-overlay'
 
 import { LOGIN } from '../graphql/mutations'
+import { ME, REPOSITORIES } from '../graphql/queries'
 import { AuthStorageContext } from '../contexts/AuthContext'
 
 const initialValues = {
@@ -69,8 +70,11 @@ const SignInForm = ({ onSubmit }) => {
 }
 
 const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
-  const [login, { loading, error, data }] = useMutation(LOGIN)
   const { setToken } = React.useContext(AuthStorageContext)
+  const [login, { loading, error, data }] = useMutation(LOGIN, {
+    refetchQueries: [{ query: ME }, { query: REPOSITORIES }],
+  })
+  const client = useApolloClient()
   const navigate = useNavigate()
 
   React.useEffect(() => {
@@ -88,8 +92,7 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
               setToken(accessToken)
               navigate('/')
               clearTimeout(timer)
-            },4000)
-            
+            }, 4000)
           }
         }
       } catch (error) {
@@ -100,13 +103,15 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
           setErrorMessage('')
           navigate('/signin')
           clearTimeout(timer)
-        },8000)
+        }, 8000)
+      } finally {
+        client.resetStore()
       }
     }
     prepare()
   }, [data?.login, mounted])
 
-   React.useEffect(() => {
+  React.useEffect(() => {
     if (mounted && error) {
       setErrorMessage(error?.message)
       let timer
@@ -119,7 +124,7 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
     if (
       mounted &&
       error?.message ===
-        'Cannot read properties of null (reading \'passwordHash\')'
+        "Cannot read properties of null (reading 'passwordHash')"
     ) {
       setErrorMessage(
         'Wrong credentials! Check if you entered your username or password correctly'
@@ -148,7 +153,7 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
     return (
       <Spinner
         visible={true}
-        textContent={'Stand by...'}
+        textContent={'Loading...'}
         textStyle={styles.spinnerTextStyle}
       />
     )
