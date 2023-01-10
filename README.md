@@ -16,3 +16,5 @@ Date: 4.1.2023
 - [Login/Logout & Notification](https://github.com/aiotrope/calibre-server/tree/10.8)
 
 - [Signup & Profile](https://github.com/aiotrope/calibre-server/tree/10.9)
+
+- [Custom hook & context](https://github.com/aiotrope/calibre-server/tree/10.10)

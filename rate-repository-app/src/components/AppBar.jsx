@@ -2,10 +2,11 @@ import React from 'react'
 import { useNavigate } from 'react-router-native'
 import { Appbar as TopNav } from 'react-native-paper'
 
-import { AuthStorageContext } from '../contexts/AuthContext'
+import { useAuthStorage } from '../contexts/AuthContext'
+
 
 const AppBar = () => {
-  const { token } = React.useContext(AuthStorageContext)
+  const { token } = useAuthStorage()
   const navigate = useNavigate()
   const onSignIn = () => {
     navigate('/signin')

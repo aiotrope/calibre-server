@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { useMutation } from '@apollo/client'
+import { useMutation, useApolloClient } from '@apollo/client'
 import { Text, TextInput, Button } from 'react-native-paper'
 import { Link, useNavigate } from 'react-router-native'
 import { Formik, useField } from 'formik'
@@ -68,6 +68,7 @@ const SignUpForm = ({ onSubmit }) => {
 
 const SignUp = ({ mounted, setErrorMessage, setSuccessMessage }) => {
   const [createUser, { loading, error, data }] = useMutation(SIGNUP)
+  const client = useApolloClient()
   const navigate = useNavigate()
 
   React.useEffect(() => {
@@ -91,7 +92,9 @@ const SignUp = ({ mounted, setErrorMessage, setSuccessMessage }) => {
           navigate('/signup')
           clearTimeout(timer)
         }, 8000)
-      } 
+      } finally {
+        client.resetStore()
+      }
     }
     prepare()
   }, [data?.signup, mounted])

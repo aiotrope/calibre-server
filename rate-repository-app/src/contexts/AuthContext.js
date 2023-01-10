@@ -19,3 +19,9 @@ export const AuthStorageProvider = ({ children }) => {
     </AuthStorageContext.Provider>
   )
 }
+
+export const useAuthStorage = () => {
+  const { token, setToken, me, setMe } = React.useContext(AuthStorageContext)
+  return { token, setToken, me, setMe }
+}
+

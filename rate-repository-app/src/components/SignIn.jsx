@@ -10,7 +10,9 @@ import Spinner from 'react-native-loading-spinner-overlay'
 
 import { LOGIN } from '../graphql/mutations'
 import { ME, REPOSITORIES } from '../graphql/queries'
-import { AuthStorageContext } from '../contexts/AuthContext'
+import { useAuthStorage } from '../contexts/AuthContext'
+//import useAuthStorage from '../hooks/useAuthStorage'
+
 
 const initialValues = {
   username: '',
@@ -70,7 +72,7 @@ const SignInForm = ({ onSubmit }) => {
 }
 
 const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
-  const { setToken } = React.useContext(AuthStorageContext)
+  const { setToken } = useAuthStorage()
   const [login, { loading, error, data }] = useMutation(LOGIN, {
     refetchQueries: [{ query: ME }, { query: REPOSITORIES }],
   })
@@ -173,8 +175,8 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
       </Formik>
       <View style={{ marginTop: 20 }}>
         <Link to={'/signup'} underlayColor="none">
-          <Text style={{ textAlign: 'center' }} variant="bodyLarge">
-            New to Calibre?
+          <Text style={{ textAlign: 'center' }} variant="bodyMedium">
+            New to Calibre? Create an account.
           </Text>
         </Link>
       </View>

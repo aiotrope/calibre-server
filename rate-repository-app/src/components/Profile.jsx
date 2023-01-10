@@ -6,12 +6,13 @@ import { useApolloClient, useQuery } from '@apollo/client'
 import { Navigate } from 'react-router-native'
 import Spinner from 'react-native-loading-spinner-overlay'
 
-import { AuthStorageContext } from '../contexts/AuthContext'
+import { useAuthStorage } from '../contexts/AuthContext'
+//import { useAuthStorage } from '../hooks/useAuthStorage'
 import { ME } from '../graphql/queries'
 
 const Profile = ({ mounted, setErrorMessage }) => {
   const client = useApolloClient()
-  const { token, setToken, setMe } = React.useContext(AuthStorageContext)
+  const { token, setToken, setMe } = useAuthStorage()
   const { loading, error, data } = useQuery(ME)
 
   React.useEffect(() => {

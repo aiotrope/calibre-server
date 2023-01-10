@@ -5,7 +5,8 @@ import { useQuery } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
 import pkg from 'lodash'
 
-import { AuthStorageContext } from '../contexts/AuthContext'
+import { useAuthStorage } from '../contexts/AuthContext'
+//import { useAuthStorage } from '../hooks/useAuthStorage'
 import { REPOSITORIES } from '../graphql/queries'
 
 const { orderBy } = pkg
@@ -25,7 +26,7 @@ const ItemSeparator = () => (
 )
 
 const RepositoryList = ({ mounted, setErrorMessage }) => {
-  const { token } = React.useContext(AuthStorageContext)
+  const { token } = useAuthStorage()
   const { loading, error, data } = useQuery(REPOSITORIES)
 
   React.useEffect(() => {
