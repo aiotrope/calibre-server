@@ -9,10 +9,9 @@ import * as yup from 'yup'
 import Spinner from 'react-native-loading-spinner-overlay'
 
 import { LOGIN } from '../graphql/mutations'
-import { ME, REPOSITORIES } from '../graphql/queries'
+import { ME, REPOSITORIES, REPOSITORY } from '../graphql/queries'
 import { useAuthStorage } from '../contexts/AuthContext'
 //import useAuthStorage from '../hooks/useAuthStorage'
-
 
 const initialValues = {
   username: '',
@@ -74,7 +73,11 @@ const SignInForm = ({ onSubmit }) => {
 const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
   const { setToken } = useAuthStorage()
   const [login, { loading, error, data }] = useMutation(LOGIN, {
-    refetchQueries: [{ query: ME }, { query: REPOSITORIES }],
+    refetchQueries: [
+      { query: ME },
+      { query: REPOSITORIES },
+      { query: REPOSITORY },
+    ],
   })
   const client = useApolloClient()
   const navigate = useNavigate()
@@ -88,18 +91,23 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
           await AsyncStorage.setItem('auth', token)
           const accessToken = await AsyncStorage.getItem('auth')
           if (accessToken !== null) {
-            let timer
+            await new Promise((resolve) => setTimeout(resolve, 4000))
+            navigate('/')
+            setToken(accessToken)
+            setSuccessMessage('')
+           
+
+            /*  let timer
             timer = setTimeout(() => {
-              setSuccessMessage('')
-              setToken(accessToken)
               navigate('/')
+              setToken(accessToken)
+              setSuccessMessage('')
               clearTimeout(timer)
-            }, 4000)
+            }, 4000) */
           }
         }
       } catch (error) {
-        console.log(error)
-        setErrorMessage(error)
+        setErrorMessage(error?.message)
         let timer
         timer = setTimeout(() => {
           setErrorMessage('')
@@ -107,7 +115,7 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
           clearTimeout(timer)
         }, 8000)
       } finally {
-        client.resetStore()
+        await client.resetStore()
       }
     }
     prepare()
@@ -155,7 +163,7 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
     return (
       <Spinner
         visible={true}
-        textContent={'Loading...'}
+        textContent={'Logging in...'}
         textStyle={styles.spinnerTextStyle}
       />
     )

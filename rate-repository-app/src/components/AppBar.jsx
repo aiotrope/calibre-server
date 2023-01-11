@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-native'
-import { Appbar as TopNav } from 'react-native-paper'
+import { Appbar as TopBar } from 'react-native-paper'
 
 import { useAuthStorage } from '../contexts/AuthContext'
 
@@ -8,6 +8,10 @@ import { useAuthStorage } from '../contexts/AuthContext'
 const AppBar = () => {
   const { token } = useAuthStorage()
   const navigate = useNavigate()
+
+  const _goBack = () => {
+    navigate('/')
+  }
   const onSignIn = () => {
     navigate('/signin')
   }
@@ -26,15 +30,17 @@ const AppBar = () => {
   return (
     <>
       {token !== null ? (
-        <TopNav.Header>
-          <TopNav.Content title="Repositories" />
-          <TopNav.Action icon="account" size={28} onPress={onProfile} />
-        </TopNav.Header>
+        <TopBar.Header>
+          <TopBar.BackAction onPress={_goBack} />
+          <TopBar.Content title="Repositories" />
+          <TopBar.Action icon="account" size={28} onPress={onProfile} />
+        </TopBar.Header>
       ) : (
-        <TopNav.Header>
-          <TopNav.Content title="Calibre" />
-          <TopNav.Action icon="login" size={28} onPress={onSignIn} />
-        </TopNav.Header>
+        <TopBar.Header>
+           <TopBar.BackAction onPress={_goBack} />
+          <TopBar.Content title="Calibre" />
+          <TopBar.Action icon="login" size={28} onPress={onSignIn} />
+        </TopBar.Header>
       )}
     </>
   )

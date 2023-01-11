@@ -4,7 +4,7 @@ import { Appbar as Bottombar, useTheme } from 'react-native-paper'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigate } from 'react-router-native'
 
-const BOTTOM_Bottombar_HEIGHT = 80
+const BOTTOM_Bottombar_HEIGHT = 60
 
 const BottomNav = () => {
   const { bottom } = useSafeAreaInsets()

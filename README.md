@@ -5,16 +5,16 @@ Date: 4.1.2023
 
 ## Branches
 
-- [Initial](https://github.com/aiotrope/calibre-server/tree/10.1)
+- [Init Backend Graphql API Set Up](https://github.com/aiotrope/calibre-server/tree/10.1)
 
-- [Backend Setup & Deployment](https://github.com/aiotrope/calibre-server/tree/10.4)
+- [Finalize Backend Setup & Deployment](https://github.com/aiotrope/calibre-server/tree/10.4)
 
-- [Initialize Frontend](https://github.com/aiotrope/calibre-server/tree/10.5)
+- [Init Frontend](https://github.com/aiotrope/calibre-server/tree/10.5)
 
-- [Login](https://github.com/aiotrope/calibre-server/tree/10.7)
+- [Login Implementation](https://github.com/aiotrope/calibre-server/tree/10.7)
 
-- [Login/Logout & Notification](https://github.com/aiotrope/calibre-server/tree/10.8)
+- [Finalize Login/Logout & Notification](https://github.com/aiotrope/calibre-server/tree/10.8)
 
-- [Signup & Profile](https://github.com/aiotrope/calibre-server/tree/10.9)
+- [Init Signup & Profile](https://github.com/aiotrope/calibre-server/tree/10.9)
 
-- [Custom hook & context](https://github.com/aiotrope/calibre-server/tree/10.10)
+- [Implement Auth Custom Hook & Context](https://github.com/aiotrope/calibre-server/tree/10.10)

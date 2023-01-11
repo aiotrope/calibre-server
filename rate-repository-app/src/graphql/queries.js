@@ -43,3 +43,23 @@ export const REPOSITORIES = gql`
     }
   }
 `
+
+export const REPOSITORY = gql`
+  query REPOSITORY($repositoryId: ID!) {
+    repository(id: $repositoryId) {
+      id
+      fullName
+      description
+      language
+      forksCount
+      stargazersCount
+      ratingAverage
+      reviewCount
+      ownerAvatarUrl
+      user {
+        id
+        username
+      }
+    }
+  }
+`

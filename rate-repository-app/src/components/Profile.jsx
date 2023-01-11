@@ -20,6 +20,7 @@ const Profile = ({ mounted, setErrorMessage }) => {
       try {
         if (mounted && token !== null) {
           setMe(data?.me)
+          await new Promise((resolve) => setTimeout(resolve, 500))
         }
       } catch (error) {
         console.error(error)
@@ -41,7 +42,7 @@ const Profile = ({ mounted, setErrorMessage }) => {
 
   const onSignOut = async () => {
     try {
-      client.resetStore()
+      await client.resetStore()
       setToken(null)
       setMe(null)
       await AsyncStorage.removeItem('auth')

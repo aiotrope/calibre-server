@@ -1,29 +1,15 @@
 import React from 'react'
-import { View, StyleSheet, FlatList } from 'react-native'
-import { Text, Divider } from 'react-native-paper'
+import { View, StyleSheet, ScrollView } from 'react-native'
+import { Text, Card, Avatar, Divider } from 'react-native-paper'
 import { useQuery } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
+import { Link } from 'react-router-native'
 import pkg from 'lodash'
 
 import { useAuthStorage } from '../contexts/AuthContext'
-//import { useAuthStorage } from '../hooks/useAuthStorage'
 import { REPOSITORIES } from '../graphql/queries'
 
 const { orderBy } = pkg
-
-const Item = ({ fullName, description, ratingAverage, ownerAvatarUrl }) => (
-  <View>
-    <Text>{fullName}</Text>
-    <Text>{description}</Text>
-    <Text>{ratingAverage}</Text>
-    <Text>{ownerAvatarUrl}</Text>
-  </View>
-)
-const ItemSeparator = () => (
-  <View style={styles.separator}>
-    <Divider />
-  </View>
-)
 
 const RepositoryList = ({ mounted, setErrorMessage }) => {
   const { token } = useAuthStorage()
@@ -59,35 +45,47 @@ const RepositoryList = ({ mounted, setErrorMessage }) => {
   }
   const sorted = orderBy(data?.repositories, ['ratingAverage'], ['desc'])
 
-  const renderItem = ({ item }) => (
-    <>
-      <Item
-        fullName={item.fullName}
-        description={item.description}
-        ratingAverage={item.ratingAverage}
-        ownerAvatarUrl={item.ownerAvatarUrl}
-      />
-      {/*  <Divider /> */}
-    </>
-  )
-
   return (
-    <FlatList
-      data={sorted}
-      keyExtractor={(item) => item.id}
-      renderItem={renderItem}
-      ItemSeparatorComponent={ItemSeparator}
-    />
+    <>
+      {sorted.map((repo, index) => (
+        <>
+          <ScrollView key={index}>
+            <Link to={`/${repo?.id}`} underlayColor="none">
+              <Card key={repo.id} style={styles.cardContainer} mode='none'>
+                <Card.Content>
+                  <Avatar.Image
+                    size={30}
+                    source={{ uri: repo.ownerAvatarUrl }}
+                  />
+                  <Text>{repo.fullName}</Text>
+                  <Text>{repo.description}</Text>
+                  <Text>{repo.ratingAverage}</Text>
+                  <Text>{repo.ownerAvatarUrl}</Text>
+                </Card.Content>
+              </Card>
+            </Link>
+            <Divider style={{ height: 8 }} />
+          </ScrollView>
+          
+        </>
+      ))}
+    </>
   )
 }
 
 const styles = StyleSheet.create({
+  cardContainer: {
+    marginLeft: 5,
+    marginRight: 5,
+    marginBottom: 40,
+    backgroundColor: '#FFF'
+  },
+
   spinnerTextStyle: {
     color: '#FFFFF',
   },
   separator: {
-    marginTop: 5,
-    marginBottom: 5
+    height: 10,
   },
 })
 

@@ -75,25 +75,19 @@ const SignUp = ({ mounted, setErrorMessage, setSuccessMessage }) => {
     const prepare = async () => {
       try {
         if (mounted && data?.signup) {
+          navigate('/signin')
           setSuccessMessage(data?.signup?.successSignupMessage)
-          let timer
-          timer = setTimeout(() => {
-            setSuccessMessage('')
-            navigate('/signin')
-            clearTimeout(timer)
-          }, 4000)
+          await new Promise((resolve) => setTimeout(resolve, 5000))
         }
       } catch (error) {
-        console.log(error)
+        //console.log(error)
         setErrorMessage(error)
-        let timer
-        timer = setTimeout(() => {
-          setErrorMessage('')
-          navigate('/signup')
-          clearTimeout(timer)
-        }, 8000)
+        navigate('/signup')
+        await new Promise((resolve) => setTimeout(resolve, 8000))
+        setErrorMessage('')
       } finally {
-        client.resetStore()
+        setSuccessMessage('')
+        await client.resetStore()
       }
     }
     prepare()
@@ -109,7 +103,6 @@ const SignUp = ({ mounted, setErrorMessage, setSuccessMessage }) => {
         clearTimeout(timer)
       }, 9000)
     }
-  
   }, [error, mounted, navigate, setErrorMessage])
 
   const onSubmit = async (values, { resetForm, setStatus }) => {
@@ -127,7 +120,7 @@ const SignUp = ({ mounted, setErrorMessage, setSuccessMessage }) => {
     return (
       <Spinner
         visible={true}
-        textContent={'Loading...'}
+        textContent={'Submitting...'}
         textStyle={styles.spinnerTextStyle}
       />
     )
@@ -136,7 +129,7 @@ const SignUp = ({ mounted, setErrorMessage, setSuccessMessage }) => {
   return (
     <View>
       <Text style={styles.container} variant="headlineSmall">
-       Register an account
+        Register an account
       </Text>
       <Formik
         initialValues={initialValues}

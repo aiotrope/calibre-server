@@ -1,11 +1,12 @@
 import * as React from 'react'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Routes, Route, Navigate } from 'react-router-native'
 
 import AppBar from './AppBar'
 import BottomNav from './BottomNav'
 import RepositoryList from './RepositoryList'
+import RepositoryItem from './RepositoryItem'
 import SignIn from './SignIn'
 import SignUp from './SignUp'
 import Notification from './Notification'
@@ -25,57 +26,83 @@ const Main = () => {
 
   return (
     <SafeAreaView>
-      <AppBar />
-      <Notification error={errorMessage} success={successMessage} />
       <View style={styles.container}>
-        <Routes>
-          <Route path="/" element={<RepositoryList />} />
-          <Route
-            path="/signup"
-            element={
-              <SignUp
-                mounted={isComponentMounted}
-                setErrorMessage={setErrorMessage}
-                setSuccessMessage={setSuccessMessage}
-              />
-            }
-          />
-          <Route
-            path="/signin"
-            element={
-              <SignIn
-                mounted={isComponentMounted}
-                setSuccessMessage={setSuccessMessage}
-                setErrorMessage={setErrorMessage}
-              />
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <Profile
-                mounted={isComponentMounted}
-                setErrorMessage={setErrorMessage}
-              />
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <AppBar />
+        <Notification error={errorMessage} success={successMessage} />
+        <ScrollView style={styles.scrollViewContainer}>
+          
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <RepositoryList
+                  mounted={isComponentMounted}
+                  setErrorMessage={setErrorMessage}
+                />
+              }
+            />
+            <Route
+              path="/:id"
+              element={
+                <RepositoryItem
+                  mounted={isComponentMounted}
+                  setErrorMessage={setErrorMessage}
+                />
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                <SignUp
+                  mounted={isComponentMounted}
+                  setErrorMessage={setErrorMessage}
+                  setSuccessMessage={setSuccessMessage}
+                />
+              }
+            />
+            <Route
+              path="/signin"
+              element={
+                <SignIn
+                  mounted={isComponentMounted}
+                  setSuccessMessage={setSuccessMessage}
+                  setErrorMessage={setErrorMessage}
+                />
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <Profile
+                  mounted={isComponentMounted}
+                  setErrorMessage={setErrorMessage}
+                />
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ScrollView>
+        <View>
+          <BottomNav />
+        </View>
       </View>
-      <BottomNav />
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 0,
+    flex: 1,
     flexGrow: 1,
     flexShrink: 1,
-    padding: 20,
-    minHeight: 643,
+    minHeight: 750,
     backgroundColor: '#FFFFFF',
   },
+  scrollViewContainer: {
+    //height: 1000,
+    width: '100%',
+    flex: 1
+  }
 })
 
 export default Main
