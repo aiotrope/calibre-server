@@ -30,13 +30,13 @@ const App = () => {
     <>
       <NativeRouter>
         <ApolloProvider client={apolloClient}>
-          <SafeAreaProvider>
-            <PaperProvider theme={theme}>
-              <AuthStorageProvider>
+          <PaperProvider theme={theme}>
+            <AuthStorageProvider>
+              <SafeAreaProvider>
                 <Main />
-              </AuthStorageProvider>
-            </PaperProvider>
-          </SafeAreaProvider>
+              </SafeAreaProvider>
+            </AuthStorageProvider>
+          </PaperProvider>
         </ApolloProvider>
       </NativeRouter>
       <StatusBar style="auto" />

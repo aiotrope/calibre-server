@@ -5,12 +5,15 @@ export const AuthStorageContext = React.createContext()
 export const AuthStorageProvider = ({ children }) => {
   const [token, setToken] = React.useState(null)
   const [me, setMe] = React.useState(null)
+  const [repos, setRepos] = React.useState([])
 
   const value = {
     token,
     setToken,
     me,
     setMe,
+    repos,
+    setRepos,
   }
 
   return (
@@ -21,7 +24,7 @@ export const AuthStorageProvider = ({ children }) => {
 }
 
 export const useAuthStorage = () => {
-  const { token, setToken, me, setMe } = React.useContext(AuthStorageContext)
-  return { token, setToken, me, setMe }
+  const { token, setToken, me, setMe, repos, setRepos } =
+    React.useContext(AuthStorageContext)
+  return { token, setToken, me, setMe, repos, setRepos }
 }
-

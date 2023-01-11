@@ -1,19 +1,36 @@
 import React from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
+import { View, StyleSheet, FlatList } from 'react-native'
 import { Text, Card, Avatar, Divider } from 'react-native-paper'
 import { useQuery } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
-import { Link } from 'react-router-native'
+import { Link, useNavigate, Navigate } from 'react-router-native'
 import pkg from 'lodash'
 
 import { useAuthStorage } from '../contexts/AuthContext'
 import { REPOSITORIES } from '../graphql/queries'
 
-const { orderBy } = pkg
+const { cloneDeep, orderBy } = pkg
 
 const RepositoryList = ({ mounted, setErrorMessage }) => {
-  const { token } = useAuthStorage()
+  const { token, repos, setRepos } = useAuthStorage()
   const { loading, error, data } = useQuery(REPOSITORIES)
+  const navigate = useNavigate()
+
+  React.useEffect(() => {
+    const prepare = async () => {
+      try {
+        if (mounted && data?.repositories) {
+          setRepos(cloneDeep(data?.repositories))
+        }
+      } catch (error) {
+        setErrorMessage(error)
+        await new Promise((resolve) => setTimeout(resolve, 4000))
+        navigate('/')
+        setErrorMessage('')
+      }
+    }
+    prepare()
+  }, [mounted, data?.repositories])
 
   React.useEffect(() => {
     if (mounted && error) {
@@ -38,47 +55,54 @@ const RepositoryList = ({ mounted, setErrorMessage }) => {
 
   if (token === null) {
     return (
-      <View>
-        <Text>Repository List</Text>
-      </View>
+      <Navigate to={'/signin'} />
     )
   }
-  const sorted = orderBy(data?.repositories, ['ratingAverage'], ['desc'])
+  const sorted = orderBy(repos, ['ratingAverage'], ['desc'])
 
   return (
-    <>
-      {sorted.map((repo, index) => (
-        <>
-          <ScrollView key={index}>
-            <Link to={`/${repo?.id}`} underlayColor="none">
-              <Card key={repo.id} style={styles.cardContainer} mode='none'>
+    <View style={styles.mainContainer}>
+      <FlatList
+        data={sorted}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.container}>
+            <Card key={item.id} style={styles.cardContainer}>
+              <Link to={`/${item.id}`} underlayColor="none">
                 <Card.Content>
                   <Avatar.Image
-                    size={30}
-                    source={{ uri: repo.ownerAvatarUrl }}
+                    size={50}
+                    source={{ uri: item.ownerAvatarUrl }}
+                    style={{ backgroundColor: '#FFF' }}
                   />
-                  <Text>{repo.fullName}</Text>
-                  <Text>{repo.description}</Text>
-                  <Text>{repo.ratingAverage}</Text>
-                  <Text>{repo.ownerAvatarUrl}</Text>
+                  <Text>{item.fullName}</Text>
+                  <Text>{item.description}</Text>
+                  <Text>{item.ratingAverage}</Text>
+                  <Text>{item.ownerAvatarUrl}</Text>
+                  <Text>{item.forksCount}</Text>
                 </Card.Content>
-              </Card>
-            </Link>
-            <Divider style={{ height: 8 }} />
-          </ScrollView>
-          
-        </>
-      ))}
-    </>
+              </Link>
+            </Card>
+          </View>
+        )}
+        ItemSeparatorComponent={Divider}
+      />
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    minHeight: 1100,
+  },
+  container: {
+    flex: 1,
+    margin: 10,
+  },
   cardContainer: {
-    marginLeft: 5,
-    marginRight: 5,
-    marginBottom: 40,
-    backgroundColor: '#FFF'
+    margin: 10,
+    padding: 15,
   },
 
   spinnerTextStyle: {
