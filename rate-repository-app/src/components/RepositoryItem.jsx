@@ -13,21 +13,7 @@ const RepositoryItem = ({ mounted, setErrorMessage }) => {
   const { loading, error, data } = useQuery(REPOSITORY, {
     variables: { repositoryId: params.id },
   })
-
-  /* React.useEffect(() => {
-    const fetchRepo = async () => {
-      try {
-        if (mounted && data?.repository) {
-          refetch({ repositoryId: params.id })
-        }
-      } catch (error) {
-        setErrorMessage(error)
-        await new Promise((resolve) => setTimeout(resolve, 8000))
-      }
-    }
-    fetchRepo()
-  }, [mounted, data?.repository, refetch]) */
-
+  
   React.useEffect(() => {
     const prepareError = async () => {
       if (mounted && error) {

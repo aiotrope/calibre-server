@@ -12,16 +12,25 @@ import { SIGNUP } from '../graphql/mutations'
 const initialValues = {
   username: '',
   password: '',
+  password_confirmation: ''
 }
 const schema = yup.object().shape({
   username: yup
     .string()
-    .min(5, 'Minimum of 5 characters')
-    .required('Field is required'),
+    .min(5, 'Minimum of 5 characters required!')
+    .required('Username is required!'),
   password: yup
     .string()
-    .min(3, 'Minimum of 3 characters')
-    .required('Field is required'),
+    .min(3, 'Minimum of 3 characters required!')
+    .required('Password is required!'),
+  password_confirmation: yup
+    .string()
+    .min(3, 'Minimum of 3 characters required!')
+    .when('password', {
+      is: (val) => (val && val.length > 0 ? true : false),
+      then: yup.string().oneOf([yup.ref('password')], 'Confirm your password!'),
+    })
+    .required('Password confirmation is required!'),
 })
 
 const FormikTextInput = ({ name, ...props }) => {
@@ -54,6 +63,12 @@ const SignUpForm = ({ onSubmit }) => {
       <FormikTextInput
         name="password"
         placeholder="Enter password"
+        secureTextEntry={true}
+        style={styles.input}
+      />
+      <FormikTextInput
+        name="password_confirmation"
+        placeholder="Repeat your password"
         secureTextEntry={true}
         style={styles.input}
       />

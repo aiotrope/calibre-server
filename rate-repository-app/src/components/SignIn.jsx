@@ -95,15 +95,6 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
             navigate('/')
             setToken(accessToken)
             setSuccessMessage('')
-           
-
-            /*  let timer
-            timer = setTimeout(() => {
-              navigate('/')
-              setToken(accessToken)
-              setSuccessMessage('')
-              clearTimeout(timer)
-            }, 4000) */
           }
         }
       } catch (error) {

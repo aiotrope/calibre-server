@@ -31,7 +31,6 @@ const AppBar = () => {
                 Create a review
               </Text>
             </Link>
-
             <Link to={'/profile'} underlayColor="none">
               <Text variant="titleMedium" style={styles.text}>
                 Profile
@@ -43,13 +42,19 @@ const AppBar = () => {
       ) : (
         <>
           <TopBar style={styles.topNav}>
-            <Text variant="titleLarge" style={[styles.text, styles.title]}>
-              Calibre
-            </Text>
-
+            <Link to={'/'} underlayColor="none">
+              <Text variant="titleLarge" style={[styles.text, styles.title]}>
+                Calibre
+              </Text>
+            </Link>
             <Link to={'/signin'} underlayColor="none">
+              <Text variant="titleMedium" style={styles.middleText}>
+               Sign In
+              </Text>
+            </Link>
+            <Link to={'/signup'} underlayColor="none">
               <Text variant="titleMedium" style={styles.text}>
-                Sign In
+                Sign Up
               </Text>
             </Link>
           </TopBar>
@@ -65,7 +70,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    paddingRight: 50,
+    paddingRight: 40,
   },
   text: {
     fontWeight: 'bold',
