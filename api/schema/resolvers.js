@@ -4,8 +4,12 @@ import mongoose from 'mongoose'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import consola from 'consola'
+import pkg from 'lodash'
 import User from '../models/user.js'
 import Repository from '../models/repository.js'
+import Review from '../models/review.js'
+
+const { countBy, meanBy, filter } = pkg
 
 export const resolvers = {
   Query: {
@@ -54,7 +58,7 @@ export const resolvers = {
         )
       }
     },
-    repositories: async (_, __, contextValue) => {
+    repositories: async (_, args, contextValue) => {
       const authUser = contextValue.authUser
       if (!authUser) {
         throw new GraphQLError('User is not authenticated', {
@@ -65,9 +69,21 @@ export const resolvers = {
         })
       }
 
+      const repos = await Repository.find({})
+        .populate('user')
+        .populate('reviews')
+      let response
       try {
-        const repos = await Repository.find({}).populate('user')
-        return repos
+        if (args.searchKeyword) {
+          response = filter(repos, function (r) {
+            return r.fullName
+              .toUpperCase()
+              .includes.args.searchKeyword.toUpperCase()
+          })
+          return response
+        } else {
+          return repos
+        }
       } catch (error) {
         throw new GraphQLError(
           `Can't processed users request: ${error.message}!`,
@@ -88,8 +104,60 @@ export const resolvers = {
         })
       }
       try {
-        const repo = await Repository.findById(args.id).populate('user')
+        const repo = await Repository.findById(args.id)
+          .populate('user')
+          .populate('reviews')
         return repo
+      } catch (error) {
+        throw new GraphQLError(
+          `Can't processed user with ${args.id}: ${error.message}`,
+          {
+            extensions: { code: 'BAD_REQUEST' },
+          }
+        )
+      }
+    },
+
+    reviews: async (_, __, contextValue) => {
+      const authUser = contextValue.authUser
+      if (!authUser) {
+        throw new GraphQLError('User is not authenticated', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+            http: { status: 401 },
+          },
+        })
+      }
+
+      try {
+        const reviewsObj = await Review.find({})
+          .populate('user')
+          .populate('repository')
+        return reviewsObj
+      } catch (error) {
+        throw new GraphQLError(
+          `Can't processed users request: ${error.message}!`,
+          {
+            extensions: { code: 'BAD_REQUEST' },
+          }
+        )
+      }
+    },
+    review: async (_, args, contextValue) => {
+      const authUser = contextValue.authUser
+      if (!authUser) {
+        throw new GraphQLError('User is not authenticated', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+            http: { status: 401 },
+          },
+        })
+      }
+      try {
+        const reviewObj = await Review.findById(args.id)
+          .populate('user')
+          .populate('repository')
+        return reviewObj
       } catch (error) {
         throw new GraphQLError(
           `Can't processed user with ${args.id}: ${error.message}`,
@@ -245,6 +313,45 @@ export const resolvers = {
         })
       }
     },
+
+    createReview: async (_, args, contextValue) => {
+      const authUser = contextValue.authUser
+      if (!authUser) {
+        throw new GraphQLError('User is not authenticated', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+            http: { status: 401 },
+          },
+        })
+      }
+
+      try {
+        const review = new Review({
+          ...args,
+          user: mongoose.Types.ObjectId(authUser.id),
+          repository: mongoose.Types.ObjectId(args.repositoryIdentification),
+        })
+        const newReview = await Review.create(review)
+        if (newReview) {
+          authUser.reviewsCreated = authUser.reviewsCreated.concat(newReview)
+          await authUser.save()
+
+          const repo = await Repository.findById(args.repositoryIdentification)
+          repo.reviews = repo.reviews.concat(newReview)
+          await repo.save()
+        }
+
+        return newReview
+      } catch (error) {
+        throw new GraphQLError(`Error: ${error.message}`, {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            http: { status: 400 },
+            arguementName: args,
+          },
+        })
+      }
+    },
   },
   User: {
     id: async (parent) => {
@@ -255,6 +362,12 @@ export const resolvers = {
     },
     repositories: async (parent) => {
       return parent.repositories
+    },
+    reviewsCreated: async (parent) => {
+      const reviewObjs = await Review.findById(parent.reviewsCreated)
+        .populate('repository')
+        .populate('user')
+      return reviewObjs
     },
   },
   Repository: {
@@ -277,17 +390,87 @@ export const resolvers = {
       return parent.stargazersCount
     },
     ratingAverage: async (parent) => {
-      return parent.ratingAverage
+      const reviews = await Review.find({ repository: parent.id })
+      if (parent.ratingAverage === null) return 0
+      if (reviews.length < 1) return 0
+      try {
+        const mean = meanBy(reviews, 'rating')
+        return mean.toFixed(2)
+      } catch (error) {
+        consola.error(error?.extensions?.code)
+        throw new GraphQLError('Cannot processed rating average request!')
+      }
     },
     reviewCount: async (parent) => {
-      return parent.reviewCount
+      const reviews = await Review.find({ repository: parent.id })
+      if (parent.reviewCount === null) return 0
+      if (reviews.length < 1) return 0
+
+      try {
+        const repoName = countBy(reviews, 'repository')
+        const reviewByRepository = repoName[parent.id]
+        if (reviewByRepository) return reviewByRepository
+      } catch (error) {
+        consola.error(error?.extensions?.code)
+        throw new GraphQLError('Cannot processed review count request!')
+      }
     },
     ownerAvatarUrl: async (parent) => {
       return parent.ownerAvatarUrl
     },
+    url: async (parent) => {
+      const urlString = `https://github.com/${parent.fullName}`
+      return urlString
+    },
+    createdAt: async (parent) => {
+      const obj = await Repository.findById(parent.id)
+      return obj.createdAt.toDateString()
+    },
+    updatedAt: async (parent) => {
+      const obj = await Repository.findById(parent.id)
+      return obj.updatedAt.toDateString()
+    },
+
     user: async (parent) => {
       const maker = await User.findById(parent.user).populate('repositories')
       return maker
+    },
+    reviews: async (parent) => {
+      return parent.reviews
+    },
+  },
+  Review: {
+    id: async (parent) => {
+      return parent.id
+    },
+    repositoryIdentification: async (parent) => {
+      return parent.repositoryIdentification
+    },
+    rating: async (parent) => {
+      return parent.rating
+    },
+    reviewText: async (parent) => {
+      return parent.reviewText
+    },
+    repository: async (parent) => {
+      const repo = await Repository.findById(parent.repository)
+        .populate('reviews')
+        .populate('user')
+      return repo
+    },
+    user: async (parent) => {
+      const maker = await User.findById(parent.user)
+        .populate('repositories')
+        .populate('reviewsCreated')
+      return maker
+    },
+    createdAt: async (parent) => {
+      const obj = await Review.findById(parent.id)
+      return obj.createdAt.toDateString()
+    },
+    updatedAt: async (parent) => {
+      const obj = await Review.findById(parent.id)
+      return obj.updatedAt.toDateString()
     },
   },
 }

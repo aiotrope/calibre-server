@@ -12,13 +12,17 @@ const RepositorySchema = new Schema(
     language: { type: String, trim: true },
     forksCount: { type: Number },
     stargazersCount: { type: Number },
-    ratingAverage: { type: Number },
-    reviewCount: { type: Number },
     ownerAvatarUrl: { type: String, trim: true },
     user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
+    reviews: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Review',
+      },
+    ],
   },
   { timestamps: true }
 )

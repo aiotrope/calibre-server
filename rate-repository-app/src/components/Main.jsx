@@ -11,6 +11,8 @@ import SignIn from './SignIn'
 import SignUp from './SignUp'
 import Notification from './Notification'
 import Profile from './Profile'
+import AddRepository from './AddRepository'
+import CreateReview from './CreateReview'
 
 const Main = () => {
   const [successMessage, setSuccessMessage] = React.useState('')
@@ -78,6 +80,26 @@ const Main = () => {
                       <Profile
                         mounted={isComponentMounted}
                         setErrorMessage={setErrorMessage}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/add-repository"
+                    element={
+                      <AddRepository
+                        mounted={isComponentMounted}
+                        setErrorMessage={setErrorMessage}
+                        setSuccessMessage={setSuccessMessage}
+                      />
+                    }
+                  />
+                   <Route
+                    path="/create-review"
+                    element={
+                      <CreateReview
+                        mounted={isComponentMounted}
+                        setErrorMessage={setErrorMessage}
+                        setSuccessMessage={setSuccessMessage}
                       />
                     }
                   />

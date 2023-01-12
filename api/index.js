@@ -75,9 +75,9 @@ const start = async () => {
         const token = authHeader && authHeader.split(' ')[1]
         if (token) {
           const decoded = jwt.verify(token, jwt_key)
-          const authUser = await User.findById(decoded.id).populate(
-            'repositories'
-          )
+          const authUser = await User.findById(decoded.id)
+            .populate('repositories')
+            .populate('reviewsCreated')
           return { authUser }
         }
       },

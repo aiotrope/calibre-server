@@ -24,6 +24,12 @@ const UserSchema = new Schema(
         ref: 'Repository',
       },
     ],
+    reviewsCreated: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Review',
+      },
+    ],
   },
   { timestamps: true }
 )

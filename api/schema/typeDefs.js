@@ -4,6 +4,7 @@ export const typeDefs = `#graphql
         id: ID!
         successSignupMessage: String
         repositories: [Repository]!
+        reviewsCreated: [Review!]!
     }
 
     type Token {
@@ -20,10 +21,14 @@ export const typeDefs = `#graphql
         language: String!
         forksCount: Int!
         stargazersCount: Int!
-        ratingAverage: Float!
-        reviewCount: Int!
+        ratingAverage: Float
+        reviewCount: Int
         ownerAvatarUrl: String!
+        url: String!
+        createdAt: String!
+        updatedAt: String!
         user: User!
+        reviews: [Review!]!
     }
 
     input RepositoryInput {
@@ -32,22 +37,34 @@ export const typeDefs = `#graphql
         language: String
         forksCount: Int
         stargazersCount: Int
-        ratingAverage: Float
-        reviewCount: Int
         ownerAvatarUrl: String
+    }
+
+    type Review {
+        id: ID!
+        repositoryIdentification: String!
+        rating: Int!
+        reviewText: String!
+        createdAt: String!
+        updatedAt: String!
+        user: User!
+        repository: Repository!
     }
 
     type Query {
         users: [User]!
         me: User!
-        repositories: [Repository!]!
+        repositories(searchKeyword: String): [Repository!]!
         repository(id: ID!): Repository!
+        reviews: [Review!]!
+        review(id: ID!): Review!
     }
 
     type Mutation {
         signup(username: String!, password: String!): User
         login(username: String!, password: String!): Token
         createRepository(repositoryInput: RepositoryInput): Repository
+        createReview(repositoryIdentification: String!, rating: Int!, reviewText: String!): Review
     }
    
 `

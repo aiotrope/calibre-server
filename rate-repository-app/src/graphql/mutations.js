@@ -19,3 +19,46 @@ export const SIGNUP = gql`
     }
   }
 `
+
+export const CREATE_REPOSITORY = gql`
+  mutation createRepository($repositoryInput: RepositoryInput) {
+    createRepository(repositoryInput: $repositoryInput) {
+      id
+      fullName
+      description
+      language
+      forksCount
+      stargazersCount
+      ownerAvatarUrl
+      user {
+        id
+        username
+      }
+    }
+  }
+`
+
+export const CREATE_REVIEW = gql`
+  mutation createReview(
+    $repositoryIdentification: String!
+    $rating: Int!
+    $reviewText: String!
+  ) {
+    createReview(
+      repositoryIdentification: $repositoryIdentification
+      rating: $rating
+      reviewText: $reviewText
+    ) {
+      id
+      repositoryIdentification
+      rating
+      reviewText
+      user {
+        id
+      }
+      repository {
+        id
+      }
+    }
+  }
+`
