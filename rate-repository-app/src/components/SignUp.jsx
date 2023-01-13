@@ -8,11 +8,19 @@ import * as yup from 'yup'
 import Spinner from 'react-native-loading-spinner-overlay'
 
 import { SIGNUP } from '../graphql/mutations'
+import {
+  ME,
+  REPOSITORIES,
+  REPOSITORY,
+  REVIEWS,
+  REVIEW,
+  USERS,
+} from '../graphql/queries'
 
 const initialValues = {
   username: '',
   password: '',
-  password_confirmation: ''
+  password_confirmation: '',
 }
 const schema = yup.object().shape({
   username: yup
@@ -82,7 +90,16 @@ const SignUpForm = ({ onSubmit }) => {
 }
 
 const SignUp = ({ mounted, setErrorMessage, setSuccessMessage }) => {
-  const [createUser, { loading, error, data }] = useMutation(SIGNUP)
+  const [createUser, { loading, error, data }] = useMutation(SIGNUP, {
+    refetchQueries: [
+      { query: ME },
+      { query: REPOSITORIES },
+      { query: REPOSITORY },
+      { query: REVIEWS },
+      { query: REVIEW },
+      { query: USERS },
+    ],
+  })
   const client = useApolloClient()
   const navigate = useNavigate()
 

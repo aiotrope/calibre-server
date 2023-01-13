@@ -24,16 +24,8 @@ export const CREATE_REPOSITORY = gql`
   mutation createRepository($repositoryInput: RepositoryInput) {
     createRepository(repositoryInput: $repositoryInput) {
       id
-      fullName
-      description
-      language
-      forksCount
-      stargazersCount
-      ownerAvatarUrl
-      user {
-        id
-        username
-      }
+      ownerName
+      repositoryName
     }
   }
 `
@@ -55,9 +47,12 @@ export const CREATE_REVIEW = gql`
       reviewText
       user {
         id
+        username
       }
       repository {
         id
+        ownerName
+        repositoryName
       }
     }
   }

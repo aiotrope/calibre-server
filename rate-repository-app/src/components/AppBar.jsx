@@ -26,7 +26,7 @@ const AppBar = () => {
               </Text>
             </Link>
 
-            <Link to={'/'} underlayColor="none">
+            <Link to={'/create-review'} underlayColor="none">
               <Text variant="titleMedium" style={styles.middleText}>
                 Create a review
               </Text>

@@ -17,33 +17,19 @@ import {
 } from '../graphql/queries'
 
 const initialValues = {
-  fullName: '',
-  description: '',
-  language: '',
-  forksCount: 0,
-  stargazersCount: 0,
-  ownerAvatarUrl: '',
+  ownerName: '',
+  repositoryName: '',
 }
 
 const schema = yup.object().shape({
-  fullName: yup
+  ownerName: yup
     .string()
-    .min(5, 'Minimum of 5 characters required!')
-    .required('Username is required!'),
-  description: yup
+    .min(2, 'Minimum of 2 characters required!')
+    .required('Field is required!'),
+  repositoryName: yup
     .string()
-    .min(5, 'Minimum of 3 characters required!')
-    .required('Password is required!'),
-  language: yup
-    .string()
-    .min(2, 'Minimum of 3 characters required!')
-    .required('Password confirmation is required!'),
-  forksCount: yup.number().required().positive().integer(),
-  stargazersCount: yup.number().required().positive().integer(),
-  ownerAvatarUrl: yup
-    .string()
-    .min(5, 'Minimum of 3 characters required!')
-    .required('Password confirmation is required!'),
+    .min(2, 'Minimum of 2 characters required!')
+    .required('Field is required!'),
 })
 
 const FormikTextInput = ({ name, ...props }) => {
@@ -69,37 +55,16 @@ const AddRepositoryForm = ({ onSubmit }) => {
   return (
     <View>
       <FormikTextInput
-        name="fullName"
-        placeholder="Enter full name"
+        name="ownerName"
+        placeholder="Name of owner"
         style={styles.input}
       />
       <FormikTextInput
-        name="description"
-        placeholder="Enter description"
+        name="repositoryName"
+        placeholder="Name of the repositories"
         style={styles.input}
       />
-      <FormikTextInput
-        name="language"
-        placeholder="Enter language"
-        style={styles.input}
-      />
-      <FormikTextInput
-        name="forksCount"
-        placeholder="Enter forks count"
-        style={styles.input}
-        keyboardType="numeric"
-      />
-      <FormikTextInput
-        name="stargazersCount"
-        placeholder="Enter stargazer count"
-        style={styles.input}
-        keyboardType="numeric"
-      />
-      <FormikTextInput
-        name="ownerAvatarUrl"
-        placeholder="Enter avatar url"
-        style={styles.input}
-      />
+
       <View style={styles.buttonContainer}>
         <Button onPress={onSubmit} mode="elevated" style={styles.button}>
           Submit
@@ -128,7 +93,7 @@ const AddRepository = ({ mounted, setErrorMessage }) => {
   React.useEffect(() => {
     const prepare = async () => {
       try {
-        if (mounted && data?.signup) {
+        if (mounted && data?.createRepository) {
           navigate('/')
           await new Promise((resolve) => setTimeout(resolve, 5000))
         }
@@ -155,25 +120,14 @@ const AddRepository = ({ mounted, setErrorMessage }) => {
   }, [error, mounted, navigate, setErrorMessage])
 
   const onSubmit = async (values, { resetForm, setStatus }) => {
-    const {
-      fullName,
-      description,
-      language,
-      forksCount,
-      stargazersCount,
-      ownerAvatarUrl,
-    } = values
+    const { ownerName, repositoryName } = values
     try {
       setStatus({ success: true })
       addRepository({
         variables: {
           repositoryInput: {
-            fullName,
-            description,
-            language,
-            forksCount,
-            stargazersCount,
-            ownerAvatarUrl,
+            ownerName,
+            repositoryName,
           },
         },
         update: (cache, { data: { addRepository } }) => {
@@ -192,7 +146,7 @@ const AddRepository = ({ mounted, setErrorMessage }) => {
     return (
       <Spinner
         visible={true}
-        textContent={'Logging in...'}
+        textContent={'Loading in...'}
         textStyle={styles.spinnerTextStyle}
       />
     )

@@ -2,17 +2,25 @@ import { Schema, model } from 'mongoose'
 
 const RepositorySchema = new Schema(
   {
-    fullName: {
+    ownerName: {
       type: String,
       trim: true,
       required: true,
       minLength: 2,
     },
-    description: { type: String, trim: true },
-    language: { type: String, trim: true },
-    forksCount: { type: Number },
-    stargazersCount: { type: Number },
-    ownerAvatarUrl: { type: String, trim: true },
+    repositoryName: {
+      type: String,
+      trim: true,
+      required: true,
+      minLength: 2,
+    },
+    fullName: { type: String, trim: true, required: true },
+    description: { type: String, trim: true, required: true },
+    avatarUrl: { type: String, trim: true, required: true },
+    language: { type: String, trim: true, required: true },
+    url: { type: String, trim: true, required: true },
+    forksCount: { type: Number, required: true },
+    stargazersCount: { type: Number, required: true },
     user: {
       type: Schema.Types.ObjectId,
       ref: 'User',

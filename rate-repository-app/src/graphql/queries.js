@@ -1,5 +1,37 @@
 import { gql } from '@apollo/client'
 
+export const USERS = gql`
+  query USERS {
+    users {
+      id
+      username
+      repositories {
+        id
+        ownerName
+        repositoryName
+        ratingAverage
+        reviewCount
+        fullName
+        description
+        language
+        url
+        avatarUrl
+        forksCount
+        stargazersCount
+        createdAt
+        updatedAt
+      }
+      reviewsCreated {
+        id
+        rating
+        reviewText
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`
+
 export const ME = gql`
   query ME {
     me {
@@ -7,19 +39,26 @@ export const ME = gql`
       username
       repositories {
         id
+        ownerName
+        repositoryName
+        ratingAverage
+        reviewCount
         fullName
         description
         language
+        url
+        avatarUrl
         forksCount
         stargazersCount
-        ratingAverage
-        reviewCount
-        ownerAvatarUrl
-        url
-        user {
-          id
-          username
-        }
+        createdAt
+        updatedAt
+      }
+      reviewsCreated {
+        id
+        rating
+        reviewText
+        createdAt
+        updatedAt
       }
     }
   }
@@ -29,15 +68,19 @@ export const REPOSITORIES = gql`
   query REPOSITORIES {
     repositories {
       id
+      ownerName
+      repositoryName
+      reviewCount
+      ratingAverage
       fullName
       description
       language
+      url
+      avatarUrl
       forksCount
       stargazersCount
-      ownerAvatarUrl
-      url
-      reviewCount
-      ratingAverage
+      createdAt
+      updatedAt
       user {
         id
         username
@@ -46,9 +89,9 @@ export const REPOSITORIES = gql`
         id
         reviewText
         rating
+        createdAt
+        updatedAt
       }
-      createdAt
-      updatedAt
     }
   }
 `
@@ -57,15 +100,19 @@ export const REPOSITORY = gql`
   query REPOSITORY($repositoryId: ID!) {
     repository(id: $repositoryId) {
       id
+      ownerName
+      repositoryName
+      reviewCount
+      ratingAverage
       fullName
       description
       language
+      url
+      avatarUrl
       forksCount
       stargazersCount
-      ownerAvatarUrl
-      url
-      reviewCount
-      ratingAverage
+      createdAt
+      updatedAt
       user {
         id
         username
@@ -74,9 +121,9 @@ export const REPOSITORY = gql`
         id
         reviewText
         rating
+        createdAt
+        updatedAt
       }
-      createdAt
-      updatedAt
     }
   }
 `
@@ -88,15 +135,27 @@ export const REVIEWS = gql`
       repositoryIdentification
       rating
       reviewText
+      createdAt
+      updatedAt
       user {
         id
         username
       }
       repository {
         id
-        fullName
+        repositoryName
+        ownerName
         ratingAverage
         reviewCount
+        fullName
+        description
+        language
+        url
+        avatarUrl
+        forksCount
+        stargazersCount
+        createdAt
+        updatedAt
       }
     }
   }
@@ -109,15 +168,27 @@ export const REVIEW = gql`
       repositoryIdentification
       rating
       reviewText
+      updatedAt
+      createdAt
       user {
         id
         username
       }
       repository {
         id
-        fullName
+        repositoryName
+        ownerName
         ratingAverage
         reviewCount
+        fullName
+        description
+        language
+        url
+        avatarUrl
+        forksCount
+        stargazersCount
+        updatedAt
+        createdAt
       }
     }
   }

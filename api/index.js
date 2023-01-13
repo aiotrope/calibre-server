@@ -53,14 +53,6 @@ const start = async () => {
 
   await server.start()
 
-  app.get('/', (req, res) => {
-    res.setHeader('Content-Type', 'text/html')
-    res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate')
-    res.end(
-      `API @ <a href="https://calibre-server.vercel.app/">https://calibre-server.vercel.app/</a>`
-    )
-  })
-
   app.use(
     '/api',
     cors(),

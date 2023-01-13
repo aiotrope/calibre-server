@@ -16,28 +16,26 @@ export const typeDefs = `#graphql
 
     type Repository {
         id: ID!
-        fullName: String!
-        description: String!
-        language: String!
-        forksCount: Int!
-        stargazersCount: Int!
+        ownerName: String!
+        repositoryName: String!
         ratingAverage: Float
         reviewCount: Int
-        ownerAvatarUrl: String!
+        forksCount: Int!
+        stargazersCount: Int!
+        avatarUrl: String!
+        fullName: String!
+        description: String!
         url: String!
-        createdAt: String!
-        updatedAt: String!
+        language: String!
         user: User!
         reviews: [Review!]!
+        createdAt: String!
+        updatedAt: String!
     }
 
     input RepositoryInput {
-        fullName: String!
-        description: String
-        language: String
-        forksCount: Int
-        stargazersCount: Int
-        ownerAvatarUrl: String
+        ownerName: String!
+        repositoryName: String!
     }
 
     type Review {
@@ -45,10 +43,10 @@ export const typeDefs = `#graphql
         repositoryIdentification: String!
         rating: Int!
         reviewText: String!
-        createdAt: String!
-        updatedAt: String!
         user: User!
         repository: Repository!
+        createdAt: String!
+        updatedAt: String!
     }
 
     type Query {

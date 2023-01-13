@@ -5,11 +5,13 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import consola from 'consola'
 import pkg from 'lodash'
+import fetch from 'node-fetch'
+
 import User from '../models/user.js'
 import Repository from '../models/repository.js'
 import Review from '../models/review.js'
 
-const { countBy, meanBy, filter } = pkg
+const { filter, meanBy, countBy } = pkg
 
 export const resolvers = {
   Query: {
@@ -25,7 +27,9 @@ export const resolvers = {
       }
 
       try {
-        const users = await User.find({}).populate('repositories')
+        const users = await User.find({})
+          .populate('repositories')
+          .populate('reviewsCreated')
 
         return users
       } catch (error) {
@@ -292,17 +296,30 @@ export const resolvers = {
       }
 
       try {
-        const repo = new Repository({
-          ...args.repositoryInput,
-          user: mongoose.Types.ObjectId(authUser.id),
-        })
-        const newRepo = await Repository.create(repo)
-        if (newRepo) {
-          authUser.repositories = authUser.repositories.concat(newRepo)
-          await authUser.save()
-        }
+        const ghAPI = `https://api.github.com/repos/${args.repositoryInput.ownerName}/${args.repositoryInput.repositoryName}`
+        const response = await fetch(ghAPI)
+        const json = await response.json()
+        //consola.log(json)
+        if (json) {
+          const repo = new Repository({
+            ...args.repositoryInput,
+            user: mongoose.Types.ObjectId(authUser.id),
+            fullName: json?.full_name,
+            description: json?.description,
+            language: json?.language,
+            url: response?.url,
+            avatarUrl: json?.owner?.avatar_url,
+            forksCount: json?.forks_count,
+            stargazersCount: json?.stargazers_count,
+          })
+          const newRepo = await Repository.create(repo)
+          if (newRepo) {
+            authUser.repositories = authUser.repositories.concat(newRepo)
+            await authUser.save()
+          }
 
-        return newRepo
+          return newRepo
+        }
       } catch (error) {
         throw new GraphQLError(`Error: ${error.message}`, {
           extensions: {
@@ -323,6 +340,12 @@ export const resolvers = {
             http: { status: 401 },
           },
         })
+      }
+      if (args.rating < 0 || args.rating > 100) {
+        throw new GraphQLError(
+          `Field only accept numbers from 0 - 100. Got ${args.rating}`,
+          { extensions: { code: 'BAD_USER_INPUT', argumentName: 'rating' } }
+        )
       }
 
       try {
@@ -364,30 +387,18 @@ export const resolvers = {
       return parent.repositories
     },
     reviewsCreated: async (parent) => {
-      const reviewObjs = await Review.findById(parent.reviewsCreated)
-        .populate('repository')
-        .populate('user')
-      return reviewObjs
+      return parent.reviewsCreated
     },
   },
   Repository: {
     id: async (parent) => {
       return parent.id
     },
-    fullName: async (parent) => {
-      return parent.fullName
+    ownerName: async (parent) => {
+      return parent.ownerName
     },
-    description: async (parent) => {
-      return parent.description
-    },
-    language: async (parent) => {
-      return parent.language
-    },
-    forksCount: async (parent) => {
-      return parent.forksCount
-    },
-    stargazersCount: async (parent) => {
-      return parent.stargazersCount
+    repositoryName: async (parent) => {
+      return parent.repositoryName
     },
     ratingAverage: async (parent) => {
       const reviews = await Review.find({ repository: parent.id })
@@ -415,13 +426,6 @@ export const resolvers = {
         throw new GraphQLError('Cannot processed review count request!')
       }
     },
-    ownerAvatarUrl: async (parent) => {
-      return parent.ownerAvatarUrl
-    },
-    url: async (parent) => {
-      const urlString = `https://github.com/${parent.fullName}`
-      return urlString
-    },
     createdAt: async (parent) => {
       const obj = await Repository.findById(parent.id)
       return obj.createdAt.toDateString()
@@ -437,6 +441,27 @@ export const resolvers = {
     },
     reviews: async (parent) => {
       return parent.reviews
+    },
+    fullName: async (parent) => {
+      return parent.fullName
+    },
+    description: async (parent) => {
+      return parent.description
+    },
+    language: async (parent) => {
+      return parent.language
+    },
+    url: async (parent) => {
+      return parent.url
+    },
+    forksCount: async (parent) => {
+      return parent.forksCount
+    },
+    stargazersCount: async (parent) => {
+      return parent.stargazersCount
+    },
+    avatarUrl: async (parent) => {
+      return parent.avatarUrl
     },
   },
   Review: {

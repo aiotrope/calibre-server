@@ -12,17 +12,17 @@ import { REPOSITORIES } from '../graphql/queries'
 const { cloneDeep, orderBy } = pkg
 
 const RepositoryList = ({ mounted, setErrorMessage }) => {
-  const { token, repos, setRepos, me } = useAuthStorage()
+  const { token, repos, setRepos } = useAuthStorage()
   const { loading, error, data } = useQuery(REPOSITORIES)
   const navigate = useNavigate()
 
   React.useEffect(() => {
     const prepare = async () => {
+      if (mounted && !data?.repositories) return <Navigate to={'/signin'} />
       try {
         if (mounted && data?.repositories) {
           setRepos(cloneDeep(data?.repositories))
         }
-        if (mounted && !data?.repositories) return <Navigate to={'/signin'} />
       } catch (error) {
         setErrorMessage(error)
         await new Promise((resolve) => setTimeout(resolve, 4000))
@@ -42,17 +42,6 @@ const RepositoryList = ({ mounted, setErrorMessage }) => {
         clearTimeout(timer)
       }, 9000)
     }
-    if (
-      mounted &&
-      error?.message === 'Response not successful: Received status code 401'
-    ) {
-      setErrorMessage('')
-      let timer
-      timer = setTimeout(() => {
-        setErrorMessage('')
-        clearTimeout(timer)
-      }, 500)
-    }
   }, [error, mounted, setErrorMessage])
 
   if (loading) {
@@ -66,10 +55,9 @@ const RepositoryList = ({ mounted, setErrorMessage }) => {
   }
 
   const sorted = orderBy(repos, ['ratingAverage'], ['desc'])
-
   return (
     <View style={styles.mainContainer}>
-      {token !== null && me !== null ? (
+      {token !== null ? (
         <FlatList
           data={sorted}
           keyExtractor={(item) => item.id}
@@ -80,13 +68,18 @@ const RepositoryList = ({ mounted, setErrorMessage }) => {
                   <Card.Content>
                     <Avatar.Image
                       size={50}
-                      source={{ uri: item.ownerAvatarUrl }}
+                      source={{ uri: item.avatarUrl }}
                       style={{ backgroundColor: '#FFF' }}
                     />
                     <Text>{item.fullName}</Text>
                     <Text>{item.description}</Text>
+                    <Text>{item.url}</Text>
+                    <Text>{item.language}</Text>
                     <Text>{item.ratingAverage}</Text>
-                    <Text>{item.ownerAvatarUrl}</Text>
+                    <Text>{item.reviewCount}</Text>
+                    <Text>{item.forksCount}</Text>
+                    <Text>{item.stargazersCount}</Text>
+                    <Text>{item.avatarUrl}</Text>
                     <Text>{item.forksCount}</Text>
                   </Card.Content>
                 </Link>
@@ -105,7 +98,7 @@ const RepositoryList = ({ mounted, setErrorMessage }) => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    minHeight: 1100,
+    minHeight: 3000,
   },
   container: {
     flex: 1,

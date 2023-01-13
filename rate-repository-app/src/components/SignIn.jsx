@@ -9,7 +9,14 @@ import * as yup from 'yup'
 import Spinner from 'react-native-loading-spinner-overlay'
 
 import { LOGIN } from '../graphql/mutations'
-import { ME, REPOSITORIES, REPOSITORY, REVIEWS, REVIEW } from '../graphql/queries'
+import {
+  ME,
+  REPOSITORIES,
+  REPOSITORY,
+  REVIEWS,
+  REVIEW,
+  USERS,
+} from '../graphql/queries'
 import { useAuthStorage } from '../contexts/AuthContext'
 //import useAuthStorage from '../hooks/useAuthStorage'
 
@@ -79,6 +86,7 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
       { query: REPOSITORY },
       { query: REVIEWS },
       { query: REVIEW },
+      { query: USERS },
     ],
   })
   const client = useApolloClient()

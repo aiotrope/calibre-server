@@ -108,7 +108,7 @@ const CreateReview = ({ mounted, setErrorMessage }) => {
       let timer
       timer = setTimeout(() => {
         setErrorMessage('')
-        navigate('/create-repository')
+        navigate('/add-repository')
         clearTimeout(timer)
       }, 9000)
     }
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
   button: {
-    padding: 9,
+    padding: 10,
   },
   input: {
     height: 50,
