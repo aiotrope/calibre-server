@@ -307,7 +307,7 @@ export const resolvers = {
             fullName: json?.full_name,
             description: json?.description,
             language: json?.language,
-            url: response?.url,
+            url: json?.html_url,
             avatarUrl: json?.owner?.avatar_url,
             forksCount: json?.forks_count,
             stargazersCount: json?.stargazers_count,

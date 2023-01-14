@@ -75,18 +75,15 @@ const AddRepositoryForm = ({ onSubmit }) => {
 }
 
 const AddRepository = ({ mounted, setErrorMessage, setSuccessMessage }) => {
-  const [addRepository, { loading, error, data }] = useMutation(
-    CREATE_REPOSITORY,
-    {
-      refetchQueries: [
-        { query: ME },
-        { query: REPOSITORIES },
-        { query: REPOSITORY },
-        { query: REVIEWS },
-        { query: REVIEW },
-      ],
-    }
-  )
+  const [addRepository, { loading, error, data }] = useMutation(CREATE_REPOSITORY, {
+    refetchQueries: [
+      { query: ME },
+      { query: REPOSITORIES },
+      { query: REPOSITORY },
+      { query: REVIEWS },
+      { query: REVIEW },
+    ],
+  })
 
   const navigate = useNavigate()
 
@@ -94,11 +91,11 @@ const AddRepository = ({ mounted, setErrorMessage, setSuccessMessage }) => {
     const prepare = async () => {
       try {
         if (mounted && data?.createRepository) {
+          await new Promise((resolve) => setTimeout(resolve, 5000))
           setSuccessMessage(
             `${data?.createRepository?.ownerName}/${data?.createRepository?.repositoryName} created`
           )
           navigate('/')
-          await new Promise((resolve) => setTimeout(resolve, 5000))
         }
       } catch (error) {
         setErrorMessage(error)
@@ -111,7 +108,7 @@ const AddRepository = ({ mounted, setErrorMessage, setSuccessMessage }) => {
     }
     prepare()
   }, [mounted, data?.createRepository, setSuccessMessage])
-
+ 
   React.useEffect(() => {
     if (mounted && error) {
       setErrorMessage(error?.message)
@@ -137,6 +134,7 @@ const AddRepository = ({ mounted, setErrorMessage, setSuccessMessage }) => {
         },
       })
       resetForm({ values: initialValues })
+
     } catch (error) {
       setStatus({ success: false })
     }
