@@ -121,10 +121,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexShrink: 1,
     backgroundColor: '#FFFFFF',
+   
   },
   scrollViewContainer: {
     flex: 1,
-    //minHeight: 1000,
     width: '100%',
   },
 })

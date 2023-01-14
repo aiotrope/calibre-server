@@ -74,7 +74,7 @@ const AddRepositoryForm = ({ onSubmit }) => {
   )
 }
 
-const AddRepository = ({ mounted, setErrorMessage }) => {
+const AddRepository = ({ mounted, setErrorMessage, setSuccessMessage }) => {
   const [addRepository, { loading, error, data }] = useMutation(
     CREATE_REPOSITORY,
     {
@@ -94,6 +94,9 @@ const AddRepository = ({ mounted, setErrorMessage }) => {
     const prepare = async () => {
       try {
         if (mounted && data?.createRepository) {
+          setSuccessMessage(
+            `${data?.createRepository?.ownerName}/${data?.createRepository?.repositoryName} created`
+          )
           navigate('/')
           await new Promise((resolve) => setTimeout(resolve, 5000))
         }
@@ -102,10 +105,12 @@ const AddRepository = ({ mounted, setErrorMessage }) => {
         navigate('/add-repository')
         await new Promise((resolve) => setTimeout(resolve, 8000))
         setErrorMessage(error)
+      } finally {
+        setSuccessMessage('')
       }
     }
     prepare()
-  }, [mounted, data?.createRepository])
+  }, [mounted, data?.createRepository, setSuccessMessage])
 
   React.useEffect(() => {
     if (mounted && error) {
@@ -129,11 +134,6 @@ const AddRepository = ({ mounted, setErrorMessage }) => {
             ownerName,
             repositoryName,
           },
-        },
-        update: (cache, { data: { addRepository } }) => {
-          const data = cache.readQuery({ query: REPOSITORIES })
-          data.repositories = [...data.repositories, addRepository]
-          cache.writeQuery({ query: REPOSITORIES }, data)
         },
       })
       resetForm({ values: initialValues })

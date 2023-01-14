@@ -15,17 +15,20 @@ import {
   REVIEWS,
   REVIEW,
 } from '../graphql/queries'
+import { useAuthStorage } from '../contexts/AuthContext'
 
 const initialValues = {
-  repositoryIdentification: '',
   rating: 0,
   reviewText: '',
 }
 
 const schema = yup.object().shape({
-  repositoryIdentification: yup.string().required(),
-  rating: yup.number().required().positive().integer(),
-  reviewText: yup.string().min(7).required('Review field is required!'),
+  rating: yup
+    .string()
+    .matches(/^([1-9]?\d|100)$/, 'Number from 0 - 100 are allowed!')
+    .trim()
+    .required(),
+  reviewText: yup.string().min(4).trim().required('Review field is required!'),
 })
 
 const FormikTextInput = ({ name, ...props }) => {
@@ -50,7 +53,6 @@ const FormikTextInput = ({ name, ...props }) => {
 const CreateReviewForm = ({ onSubmit }) => {
   return (
     <View>
-      <FormikTextInput name="repositoryIdentification" style={styles.input} />
       <FormikTextInput
         name="rating"
         placeholder="Enter rating"
@@ -64,7 +66,7 @@ const CreateReviewForm = ({ onSubmit }) => {
       />
 
       <View style={styles.buttonContainer}>
-        <Button onPress={onSubmit} mode="elevated" style={styles.button}>
+        <Button onPress={onSubmit} mode="contained" style={styles.button}>
           Submit
         </Button>
       </View>
@@ -84,23 +86,25 @@ const CreateReview = ({ mounted, setErrorMessage }) => {
   })
 
   const navigate = useNavigate()
+  const { paramsId, reviewName, setParamsId } = useAuthStorage()
 
   React.useEffect(() => {
     const prepare = async () => {
       try {
         if (mounted && data?.createReview) {
-          navigate('/')
-          await new Promise((resolve) => setTimeout(resolve, 5000))
+          navigate(`/${paramsId}`)
+          await new Promise((resolve) => setTimeout(resolve, 3000))
+          
         }
       } catch (error) {
         setErrorMessage(error)
         navigate('/create-review')
         await new Promise((resolve) => setTimeout(resolve, 8000))
         setErrorMessage(error)
-      }
+      } 
     }
     prepare()
-  }, [mounted, data?.createRepository])
+  }, [mounted, data?.createReview, navigate, setParamsId, setErrorMessage])
 
   React.useEffect(() => {
     if (mounted && error) {
@@ -108,26 +112,21 @@ const CreateReview = ({ mounted, setErrorMessage }) => {
       let timer
       timer = setTimeout(() => {
         setErrorMessage('')
-        navigate('/add-repository')
+        navigate('/create-review')
         clearTimeout(timer)
       }, 9000)
     }
   }, [error, mounted, navigate, setErrorMessage])
 
   const onSubmit = async (values, { resetForm, setStatus }) => {
-    const { repositoryIdentification, rating, reviewText } = values
+    const { rating, reviewText } = values
     try {
       setStatus({ success: true })
       addReview({
         variables: {
-          repositoryIdentification,
-          rating,
+          repositoryIdentification: paramsId,
+          rating: parseInt(rating),
           reviewText,
-        },
-        update: (cache, { data: { addReview } }) => {
-          const data = cache.readQuery({ query: REPOSITORIES })
-          data.repositories = [...data.repositories, addReview]
-          cache.writeQuery({ query: REPOSITORIES }, data)
         },
       })
       resetForm({ values: initialValues })
@@ -147,8 +146,8 @@ const CreateReview = ({ mounted, setErrorMessage }) => {
   }
   return (
     <View>
-      <Text style={styles.container} variant="headlineSmall">
-        Create Review
+      <Text style={styles.container} variant="titleMedium">
+        Create a review for {reviewName} repository
       </Text>
       <Formik
         initialValues={initialValues}

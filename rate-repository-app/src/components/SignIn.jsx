@@ -18,7 +18,6 @@ import {
   USERS,
 } from '../graphql/queries'
 import { useAuthStorage } from '../contexts/AuthContext'
-//import useAuthStorage from '../hooks/useAuthStorage'
 
 const initialValues = {
   username: '',
@@ -101,10 +100,11 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
           await AsyncStorage.setItem('auth', token)
           const accessToken = await AsyncStorage.getItem('auth')
           if (accessToken !== null) {
-            await new Promise((resolve) => setTimeout(resolve, 4000))
+            await new Promise((resolve) => setTimeout(resolve, 2000))
             navigate('/')
             setToken(accessToken)
             setSuccessMessage('')
+            
           }
         }
       } catch (error) {

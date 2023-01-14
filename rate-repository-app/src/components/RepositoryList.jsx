@@ -5,11 +5,58 @@ import { useQuery } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
 import { Link, useNavigate, Navigate } from 'react-router-native'
 import pkg from 'lodash'
+import numbro from 'numbro'
+import moment from 'moment/moment'
 
 import { useAuthStorage } from '../contexts/AuthContext'
 import { REPOSITORIES } from '../graphql/queries'
 
 const { cloneDeep, orderBy } = pkg
+
+const Item = ({
+  id,
+  avatarUrl,
+  fullName,
+  description,
+  url,
+  language,
+  ratingAverage,
+  reviewCount,
+  forksCount,
+  stargazersCount,
+  createdAt,
+}) => {
+  const forks = numbro(forksCount).format({ average: true, mantissa: 1 })
+  const stars = numbro(stargazersCount).format({ average: true, mantissa: 1 })
+  const rating = numbro(ratingAverage).format({ average: true })
+  const created = moment(createdAt).format('DD.MM.YYYY')
+  return (
+    <View style={styles.container}>
+      <Card key={id} style={styles.cardContainer}>
+        <Link to={`/${id}`} underlayColor="none">
+          <Card.Content>
+            <Avatar.Image
+              size={50}
+              source={{ uri: avatarUrl }}
+              style={{ backgroundColor: '#FFF' }}
+            />
+            <Text>{fullName}</Text>
+            <Text>{description}</Text>
+            <Text>{url}</Text>
+            <Text>{language}</Text>
+            <Text>{rating}</Text>
+            <Text>{reviewCount}</Text>
+            <Text>{forks}</Text>
+            <Text>{stars}</Text>
+            <Text>{created}</Text>
+          </Card.Content>
+        </Link>
+      </Card>
+    </View>
+  )
+}
+
+const MemoItem = React.memo(Item)
 
 const RepositoryList = ({ mounted, setErrorMessage }) => {
   const { token, repos, setRepos } = useAuthStorage()
@@ -54,38 +101,30 @@ const RepositoryList = ({ mounted, setErrorMessage }) => {
     )
   }
 
-  const sorted = orderBy(repos, ['ratingAverage'], ['desc'])
+  const sorted = orderBy(repos, ['createdAt'], ['desc'])
+  const renderItem = ({ item }) => (
+    <MemoItem
+      id={item.id}
+      title={item.title}
+      description={item.description}
+      avatarUrl={item.avatarUrl}
+      reviewCount={item.reviewCount}
+      ratingAverage={item.ratingAverage}
+      url={item.url}
+      language={item.language}
+      forksCount={item.forksCount}
+      stargazersCount={item.stargazersCount}
+      createdAt={item.createdAt}
+    />
+  )
   return (
     <View style={styles.mainContainer}>
       {token !== null ? (
         <FlatList
           data={sorted}
+          initialNumToRender={3}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.container}>
-              <Card key={item.id} style={styles.cardContainer}>
-                <Link to={`/${item.id}`} underlayColor="none">
-                  <Card.Content>
-                    <Avatar.Image
-                      size={50}
-                      source={{ uri: item.avatarUrl }}
-                      style={{ backgroundColor: '#FFF' }}
-                    />
-                    <Text>{item.fullName}</Text>
-                    <Text>{item.description}</Text>
-                    <Text>{item.url}</Text>
-                    <Text>{item.language}</Text>
-                    <Text>{item.ratingAverage}</Text>
-                    <Text>{item.reviewCount}</Text>
-                    <Text>{item.forksCount}</Text>
-                    <Text>{item.stargazersCount}</Text>
-                    <Text>{item.avatarUrl}</Text>
-                    <Text>{item.forksCount}</Text>
-                  </Card.Content>
-                </Link>
-              </Card>
-            </View>
-          )}
+          renderItem={renderItem}
           ItemSeparatorComponent={Divider}
         />
       ) : (
@@ -102,7 +141,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    margin: 10,
   },
   cardContainer: {
     margin: 10,

@@ -428,11 +428,11 @@ export const resolvers = {
     },
     createdAt: async (parent) => {
       const obj = await Repository.findById(parent.id)
-      return obj.createdAt.toDateString()
+      return obj.createdAt.toUTCString()
     },
     updatedAt: async (parent) => {
       const obj = await Repository.findById(parent.id)
-      return obj.updatedAt.toDateString()
+      return obj.updatedAt.toUTCString()
     },
 
     user: async (parent) => {
@@ -491,11 +491,11 @@ export const resolvers = {
     },
     createdAt: async (parent) => {
       const obj = await Review.findById(parent.id)
-      return obj.createdAt.toDateString()
+      return obj.createdAt.toUTCString()
     },
     updatedAt: async (parent) => {
       const obj = await Review.findById(parent.id)
-      return obj.updatedAt.toDateString()
+      return obj.updatedAt.toUTCString()
     },
   },
 }

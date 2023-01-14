@@ -1,19 +1,23 @@
 import * as React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { List } from 'react-native-paper'
+import { List, Button } from 'react-native-paper'
 import { useParams, useNavigate } from 'react-router-native'
 import { useQuery } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
 
 import { REPOSITORY } from '../graphql/queries'
+import { useAuthStorage } from '../contexts/AuthContext'
+//import CreateReview from './CreateReview'
 
 const RepositoryItem = ({ mounted, setErrorMessage }) => {
   const params = useParams()
   const navigate = useNavigate()
+  const { setParamsId, setReviewName } = useAuthStorage()
+
   const { loading, error, data } = useQuery(REPOSITORY, {
     variables: { repositoryId: params.id },
   })
-  
+
   React.useEffect(() => {
     const prepareError = async () => {
       if (mounted && error) {
@@ -25,6 +29,12 @@ const RepositoryItem = ({ mounted, setErrorMessage }) => {
     prepareError()
   }, [])
 
+  const onReview = () => {
+    navigate('/create-review')
+    setParamsId(params.id)
+    setReviewName(data?.repository?.repositoryName)
+  }
+
   if (loading) {
     return (
       <Spinner
@@ -34,7 +44,7 @@ const RepositoryItem = ({ mounted, setErrorMessage }) => {
       />
     )
   }
-  
+
   return (
     <View key={data?.repository?.id}>
       <List.Item
@@ -60,9 +70,12 @@ const RepositoryItem = ({ mounted, setErrorMessage }) => {
       />
       <List.Item
         title="Avatar"
-        description={data?.repository?.ownerAvatarUrl}
+        description={data?.repository?.avatarUrl}
         left={(props) => <List.Icon {...props} icon="id-card" />}
       />
+      <Button mode="outlined" onPress={onReview}>
+        Create a review
+      </Button>
     </View>
   )
 }

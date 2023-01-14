@@ -7,12 +7,11 @@ import { Navigate } from 'react-router-native'
 import Spinner from 'react-native-loading-spinner-overlay'
 
 import { useAuthStorage } from '../contexts/AuthContext'
-//import { useAuthStorage } from '../hooks/useAuthStorage'
 import { ME } from '../graphql/queries'
 
 const Profile = ({ mounted, setErrorMessage }) => {
   const client = useApolloClient()
-  const { token, setToken, setMe, setRepos } = useAuthStorage()
+  const { token, setToken, setMe, setRepos, setParamsId } = useAuthStorage()
   const { loading, error, data } = useQuery(ME)
 
   React.useEffect(() => {
@@ -46,6 +45,7 @@ const Profile = ({ mounted, setErrorMessage }) => {
       setToken(null)
       setMe(null)
       setRepos([])
+      setParamsId(null)
       await AsyncStorage.removeItem('auth')
     } catch (error) {
       console.error(error)
