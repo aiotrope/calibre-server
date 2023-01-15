@@ -11,7 +11,7 @@ import User from '../models/user.js'
 import Repository from '../models/repository.js'
 import Review from '../models/review.js'
 
-const { filter, meanBy, countBy } = pkg
+const { meanBy, countBy, filter, includes } = pkg
 
 export const resolvers = {
   Query: {
@@ -79,11 +79,13 @@ export const resolvers = {
       let response
       try {
         if (args.searchKeyword) {
-          response = filter(repos, function (r) {
-            return r.fullName
-              .toUpperCase()
-              .includes.args.searchKeyword.toUpperCase()
-          })
+          //response = filter(repos, { fullName: args.searchKeyword })
+          response = filter(repos, (val) =>
+            includes(
+              args.searchKeyword.toUpperCase(),
+              val.fullName.toUpperCase()
+            )
+          )
           return response
         } else {
           return repos

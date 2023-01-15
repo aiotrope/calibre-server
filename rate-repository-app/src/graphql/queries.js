@@ -59,14 +59,23 @@ export const ME = gql`
         reviewText
         createdAt
         updatedAt
+        user {
+          id
+          username
+        }
+        repository {
+          id
+          fullName
+          url
+        }
       }
     }
   }
 `
 
 export const REPOSITORIES = gql`
-  query REPOSITORIES {
-    repositories {
+  query REPOSITORIE($searchKeyword: String) {
+    repositories(searchKeyword: $searchKeyword) {
       id
       ownerName
       repositoryName
@@ -91,6 +100,10 @@ export const REPOSITORIES = gql`
         rating
         createdAt
         updatedAt
+        user {
+          id
+          username
+        }
       }
     }
   }
@@ -123,6 +136,10 @@ export const REPOSITORY = gql`
         rating
         createdAt
         updatedAt
+        user {
+          id
+          username
+        }
       }
     }
   }

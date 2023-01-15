@@ -1,12 +1,19 @@
 import React from 'react'
 import { View, StyleSheet, FlatList } from 'react-native'
-import { Text, Card, Avatar, Divider } from 'react-native-paper'
+import {
+  Text,
+  Card,
+  Avatar,
+  Divider,
+  DataTable,
+  Chip,
+} from 'react-native-paper'
 import { useQuery } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
-import { Link, useNavigate, Navigate } from 'react-router-native'
+import { useNavigate, Navigate, Link } from 'react-router-native'
 import pkg from 'lodash'
 import numbro from 'numbro'
-import moment from 'moment/moment'
+//import moment from 'moment/moment'
 
 import { useAuthStorage } from '../contexts/AuthContext'
 import { REPOSITORIES } from '../graphql/queries'
@@ -18,39 +25,61 @@ const Item = ({
   avatarUrl,
   fullName,
   description,
-  url,
   language,
   ratingAverage,
   reviewCount,
   forksCount,
   stargazersCount,
-  createdAt,
 }) => {
   const forks = numbro(forksCount).format({ average: true, mantissa: 1 })
   const stars = numbro(stargazersCount).format({ average: true, mantissa: 1 })
   const rating = numbro(ratingAverage).format({ average: true })
-  const created = moment(createdAt).format('DD.MM.YYYY')
+  //const created = moment(createdAt).format('DD.MM.YYYY')
+  const lang = `language-${lang}`.toLowerCase()
+
   return (
     <View style={styles.container}>
-      <Card key={id} style={styles.cardContainer}>
-        <Link to={`/${id}`} underlayColor="none">
-          <Card.Content>
-            <Avatar.Image
-              size={50}
-              source={{ uri: avatarUrl }}
-              style={{ backgroundColor: '#FFF' }}
-            />
-            <Text>{fullName}</Text>
-            <Text>{description}</Text>
-            <Text>{url}</Text>
-            <Text>{language}</Text>
-            <Text>{rating}</Text>
-            <Text>{reviewCount}</Text>
-            <Text>{forks}</Text>
-            <Text>{stars}</Text>
-            <Text>{created}</Text>
-          </Card.Content>
-        </Link>
+      <Card key={id} style={styles.cardContainer} mode="contained">
+        <Card.Title
+          title={fullName}
+          titleStyle={{ fontWeight: 'bold' }}
+          subtitle={`${description}`}
+          subtitleNumberOfLines={10}
+          left={(props) => (
+            <Link to={`/${id}`} underlayColor="none">
+              <Avatar.Image {...props} source={{ uri: avatarUrl }} />
+            </Link>
+          )}
+        />
+
+        <Card.Content>
+          <View>
+            <DataTable>
+              <DataTable.Row style={{ marginTop: 5, marginLeft: 37 }}>
+                <DataTable.Cell>
+                  <Chip
+                    icon={`language-${language}`.toLowerCase()}
+                    style={{ backgroundColor: '#FFF' }}
+                  >
+                    {language}
+                  </Chip>
+                </DataTable.Cell>
+              </DataTable.Row>
+              <DataTable.Row>
+                <DataTable.Cell>{stars}</DataTable.Cell>
+                <DataTable.Cell>{forks}</DataTable.Cell>
+                <DataTable.Cell>{reviewCount}</DataTable.Cell>
+                <DataTable.Cell>{rating}</DataTable.Cell>
+              </DataTable.Row>
+              <DataTable.Row>
+                <DataTable.Cell>Stars</DataTable.Cell>
+                <DataTable.Cell>Forks</DataTable.Cell>
+                <DataTable.Cell>Reviews</DataTable.Cell>
+                <DataTable.Cell>Rating</DataTable.Cell>
+              </DataTable.Row>
+            </DataTable>
+          </View>
+        </Card.Content>
       </Card>
     </View>
   )
@@ -59,8 +88,10 @@ const Item = ({
 const MemoItem = React.memo(Item)
 
 const RepositoryList = ({ mounted, setErrorMessage }) => {
-  const { token, repos, setRepos } = useAuthStorage()
-  const { loading, error, data } = useQuery(REPOSITORIES)
+  const { token, repos, setRepos, sorting, search } = useAuthStorage()
+  const { loading, error, data } = useQuery(REPOSITORIES, {
+    variables: { searchKeyword: search },
+  })
   const navigate = useNavigate()
 
   React.useEffect(() => {
@@ -101,11 +132,22 @@ const RepositoryList = ({ mounted, setErrorMessage }) => {
     )
   }
 
-  const sorted = orderBy(repos, ['createdAt'], ['desc'])
+  let sorted
+  if (sorting === 'latest') {
+    sorted = orderBy(repos, ['createdAt'], ['desc'])
+  }
+  if (sorting === 'highest') {
+    sorted = orderBy(repos, ['ratingAverage'], ['desc'])
+  }
+
+  if (sorting === 'lowest') {
+    sorted = orderBy(repos, ['ratingAverage'], ['asc'])
+  }
+
   const renderItem = ({ item }) => (
     <MemoItem
       id={item.id}
-      title={item.title}
+      fullName={item.fullName}
       description={item.description}
       avatarUrl={item.avatarUrl}
       reviewCount={item.reviewCount}
@@ -143,8 +185,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardContainer: {
-    margin: 10,
-    padding: 15,
+    margin: 7,
+    padding: 7,
   },
 
   spinnerTextStyle: {

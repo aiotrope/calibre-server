@@ -8,6 +8,8 @@ export const AuthStorageProvider = ({ children }) => {
   const [repos, setRepos] = React.useState([])
   const [paramsId, setParamsId] = React.useState(null)
   const [reviewName, setReviewName] = React.useState(null)
+  const [sorting, setSorting] = React.useState('latest')
+  const [search, setSearch] = React.useState(null)
 
   const value = {
     token,
@@ -20,6 +22,11 @@ export const AuthStorageProvider = ({ children }) => {
     setParamsId,
     reviewName,
     setReviewName,
+    sorting,
+    setSorting,
+    search,
+    setSearch
+
   }
 
   return (
@@ -41,6 +48,10 @@ export const useAuthStorage = () => {
     setParamsId,
     reviewName,
     setReviewName,
+    sorting,
+    setSorting,
+    search,
+    setSearch
   } = React.useContext(AuthStorageContext)
   return {
     token,
@@ -53,5 +64,9 @@ export const useAuthStorage = () => {
     setParamsId,
     reviewName,
     setReviewName,
+    sorting,
+    setSorting,
+    search,
+    setSearch
   }
 }

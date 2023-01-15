@@ -1,19 +1,41 @@
 import React from 'react'
 import { StyleSheet } from 'react-native'
 import { useNavigate, Link } from 'react-router-native'
-import { Appbar as TopBar, Text, Searchbar } from 'react-native-paper'
+import { Appbar as TopBar, Text, Searchbar, List } from 'react-native-paper'
 
 import { useAuthStorage } from '../contexts/AuthContext'
 
 const AppBar = () => {
-  const { token } = useAuthStorage()
+  const { token, setSorting, search, setSearch } = useAuthStorage()
+
   const navigate = useNavigate()
+  const [expanded, setExpanded] = React.useState(true)
+  const [accordionTitle, setAccordionTitle] = React.useState(
+    'Latest repositories'
+  )
+
+  const onChangeSearch = (query) => setSearch(query)
+
+  const handlePress = () => setExpanded(!expanded)
 
   React.useEffect(() => {
     if (token === null) {
       navigate('/signin')
     }
   }, [token])
+
+  React.useEffect(() => {
+    const prepare = async () => {
+      if (accordionTitle === 'Latest repositories') {
+        setSorting('latest')
+      } else if (accordionTitle === 'Highest rated repositories') {
+        setSorting('highest')
+      } else {
+        setSorting('lowest')
+      }
+    }
+    prepare()
+  }, [accordionTitle, setSorting])
 
   return (
     <>
@@ -37,7 +59,27 @@ const AppBar = () => {
               </Text>
             </Link>
           </TopBar>
-          <Searchbar placeholder="Search" />
+          <Searchbar
+            placeholder="Search"
+            onChangeText={onChangeSearch}
+            value={search}
+          />
+          <List.Section>
+            <List.Accordion title={accordionTitle} onPress={handlePress}>
+              <List.Item
+                title="Latest repositories"
+                onPress={() => setAccordionTitle('Latest repositories')}
+              />
+              <List.Item
+                title="Highest rated Repositories"
+                onPress={() => setAccordionTitle('Highest rated repositories')}
+              />
+              <List.Item
+                title="Lowest rated repositories"
+                onPress={() => setAccordionTitle('Lowest rated repositories')}
+              />
+            </List.Accordion>
+          </List.Section>
         </>
       ) : (
         <>
@@ -49,7 +91,7 @@ const AppBar = () => {
             </Link>
             <Link to={'/signin'} underlayColor="none">
               <Text variant="titleMedium" style={styles.middleText}>
-               Sign In
+                Sign In
               </Text>
             </Link>
             <Link to={'/signup'} underlayColor="none">

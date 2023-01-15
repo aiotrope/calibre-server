@@ -1,59 +1,54 @@
 import * as React from 'react'
-import { View, StyleSheet, Linking, Alert } from 'react-native'
-import { Button, Text, Card, Avatar } from 'react-native-paper'
-import { useParams, useNavigate, Link } from 'react-router-native'
+import { View, StyleSheet, Linking, Alert, FlatList } from 'react-native'
+import {
+  Button,
+  Card,
+  Avatar,
+  DataTable,
+  Chip,
+  Badge,
+  Divider,
+  Text,
+} from 'react-native-paper'
+import { useParams, useNavigate } from 'react-router-native'
 import { useQuery } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
 import numbro from 'numbro'
 import moment from 'moment/moment'
+import pkg from 'lodash'
 
 import { REPOSITORY } from '../graphql/queries'
 import { useAuthStorage } from '../contexts/AuthContext'
 
-const Item = ({
-  id,
-  avatarUrl,
-  fullName,
-  description,
-  url,
-  language,
-  ratingAverage,
-  reviewCount,
-  forksCount,
-  stargazersCount,
-  createdAt,
-}) => {
-  const forks = numbro(forksCount).format({ average: true, mantissa: 1 })
-  const stars = numbro(stargazersCount).format({ average: true, mantissa: 1 })
-  const rating = numbro(ratingAverage).format({ average: true })
+const { orderBy } = pkg
+
+const Item = ({ id, reviewText, rating, createdAt, user }) => {
+  const rate = numbro(rating).format({ average: true })
   const created = moment(createdAt).format('DD.MM.YYYY')
+  const username = user?.username
   return (
     <View style={styles.container}>
       <Card key={id} style={styles.cardContainer}>
-        <Link to={`/${id}`} underlayColor="none">
-          <Card.Content>
-            <Avatar.Image
-              size={50}
-              source={{ uri: avatarUrl }}
-              style={{ backgroundColor: '#FFF' }}
-            />
-            <Text>{fullName}</Text>
-            <Text>{description}</Text>
-            <Text>{url}</Text>
-            <Text>{language}</Text>
-            <Text>{rating}</Text>
-            <Text>{reviewCount}</Text>
-            <Text>{forks}</Text>
-            <Text>{stars}</Text>
-            <Text>{created}</Text>
-          </Card.Content>
-        </Link>
+        <Card.Title
+          title={`Review by ${username}`}
+          titleStyle={{ fontWeight: 'bold' }}
+          subtitle={created}
+          subtitleNumberOfLines={1000}
+          left={() => (
+            <Badge size={45} style={{ backgroundColor: '#003f5c' }}>
+              {rate}
+            </Badge>
+          )}
+        />
+        <Card.Content>
+          <Text>{reviewText}</Text>
+        </Card.Content>
       </Card>
     </View>
   )
 }
 
-React.memo(Item)
+const MemoItem = React.memo(Item)
 
 const URLButton = ({ url }) => {
   const handlePress = React.useCallback(async () => {
@@ -66,7 +61,7 @@ const URLButton = ({ url }) => {
   }, [url])
 
   return (
-    <Button mode="outlined" onPress={handlePress}>
+    <Button onPress={handlePress} mode="contained">
       Open in Github
     </Button>
   )
@@ -107,41 +102,100 @@ const RepositoryItem = ({ mounted, setErrorMessage }) => {
       />
     )
   }
-  const forks = numbro(data?.repository?.forksCount).format({ average: true, mantissa: 1 })
-  const stars = numbro(data?.repository?.stargazersCount).format({ average: true, mantissa: 1 })
-  const rating = numbro(data?.repository?.ratingAverage).format({ average: true })
-  const created = moment(data?.repository?.createdAt).format('DD.MM.YYYY')
-  const reviewCount = numbro(data?.repository?.reviewCount).format({ average: true })
-  return (
-    <View key={data?.repository?.id}>
-      <Card style={styles.cardContainer}>
-        <Card.Content>
-          <Avatar.Image
-            size={50}
-            source={{ uri: data?.repository?.avatarUrl }}
-            style={{ backgroundColor: '#FFF' }}
-          />
-          <Text>{data?.repository?.fullName}</Text>
-          <Text>{data?.repository?.description}</Text>
-          <Text>{data?.repository?.url}</Text>
-          <Text>{data?.repository?.language}</Text>
-          <Text>{rating}</Text>
-          <Text>{reviewCount}</Text>
-          <Text>{forks}</Text>
-          <Text>{stars}</Text>
-          <Text>{created}</Text>
-          <URLButton url={data?.repository?.url} />
+  const forks = numbro(data?.repository?.forksCount).format({
+    average: true,
+    mantissa: 1,
+  })
+  const stars = numbro(data?.repository?.stargazersCount).format({
+    average: true,
+    mantissa: 1,
+  })
+  const rating = numbro(data?.repository?.ratingAverage).format({
+    average: true,
+  })
 
-          <Link to={'/create-review'} underlayColor="none">
-            <Text variant="bodyLarge">
-              Create a review for {data?.repository?.fullName} repository
-            </Text>
-          </Link>
+  const reviewCount = numbro(data?.repository?.reviewCount).format({
+    average: true,
+  })
+
+  const reviewField = data?.repository?.reviews
+  const sortReview = orderBy(reviewField, ['createdAt'], ['desc'])
+
+  const renderItem = ({ item }) => (
+    <MemoItem
+      id={item.id}
+      user={item.user}
+      reviewText={item.reviewText}
+      rating={item.rating}
+      created={item.createdAt}
+    />
+  )
+  return (
+    <View>
+      <Card
+        key={data?.repository?.id}
+        style={styles.cardContainer}
+        mode="contained"
+      >
+        <Card.Title
+          title={`${data?.repository?.fullName}`}
+          titleStyle={{ fontWeight: 'bold' }}
+          subtitle={data?.repository?.description}
+          subtitleNumberOfLines={10}
+          left={(props) => (
+            <Avatar.Image
+              {...props}
+              source={{ uri: data?.repository?.avatarUrl }}
+            />
+          )}
+        />
+
+        <Card.Content>
+          <View>
+            <DataTable>
+              <DataTable.Row style={{ marginTop: 5, marginLeft: 37 }}>
+                <DataTable.Cell>
+                  <Chip
+                    icon={`language-${data?.repository?.language}`.toLowerCase()}
+                    style={{ backgroundColor: '#FFF' }}
+                  >
+                    {data?.repository?.language}
+                  </Chip>
+                </DataTable.Cell>
+              </DataTable.Row>
+              <DataTable.Row>
+                <DataTable.Cell>{stars}</DataTable.Cell>
+                <DataTable.Cell>{forks}</DataTable.Cell>
+                <DataTable.Cell>{reviewCount}</DataTable.Cell>
+                <DataTable.Cell>{rating}</DataTable.Cell>
+              </DataTable.Row>
+              <DataTable.Row>
+                <DataTable.Cell>Stars</DataTable.Cell>
+                <DataTable.Cell>Forks</DataTable.Cell>
+                <DataTable.Cell>Reviews</DataTable.Cell>
+                <DataTable.Cell>Rating</DataTable.Cell>
+              </DataTable.Row>
+            </DataTable>
+          </View>
         </Card.Content>
+        <View
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <Card.Actions>
+            <URLButton url={data?.repository?.url} />
+            <Button onPress={onReview}>Create a review</Button>
+          </Card.Actions>
+        </View>
       </Card>
-      <Button mode="outlined" onPress={onReview}>
-        Create a review
-      </Button>
+      <View style={styles.mainContainer}>
+        <FlatList
+          data={sortReview}
+          initialNumToRender={3}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          ItemSeparatorComponent={Divider}
+        />
+      </View>
     </View>
   )
 }
