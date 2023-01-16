@@ -63,6 +63,7 @@ export const typeDefs = `#graphql
         login(username: String!, password: String!): Token
         createRepository(repositoryInput: RepositoryInput): Repository
         createReview(repositoryIdentification: String!, rating: Int!, reviewText: String!): Review
+        deleteReview(reviewId: String!): Review
     }
    
 `

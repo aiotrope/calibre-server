@@ -2,15 +2,23 @@ import * as React from 'react'
 import { View, StyleSheet, FlatList, Linking, Alert } from 'react-native'
 import { Text, Button, Card, Badge, Divider } from 'react-native-paper'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useApolloClient, useQuery } from '@apollo/client'
-import { Navigate } from 'react-router-native'
+import { useApolloClient, useQuery, useMutation } from '@apollo/client'
+import { Navigate, useNavigate } from 'react-router-native'
 import Spinner from 'react-native-loading-spinner-overlay'
 import numbro from 'numbro'
 import moment from 'moment/moment'
 import pkg from 'lodash'
 
 import { useAuthStorage } from '../contexts/AuthContext'
-import { ME } from '../graphql/queries'
+import {
+  ME,
+  REPOSITORIES,
+  REPOSITORY,
+  REVIEWS,
+  REVIEW,
+  USERS,
+} from '../graphql/queries'
+import { DELETE_REVIEW } from '../graphql/mutations'
 
 const { orderBy } = pkg
 
@@ -25,8 +33,60 @@ const URLButton = ({ url }) => {
   }, [url])
 
   return (
-    <Button onPress={handlePress} mode="outlined">
+    <Button onPress={handlePress} mode="contained-tonal" style={{ marginRight: 9 }}>
       View Repository
+    </Button>
+  )
+}
+
+const DeleteButton = ({ id }) => {
+  const [delete_review, { loading, data }] = useMutation(DELETE_REVIEW, {
+    refetchQueries: [
+      { query: ME },
+      { query: REPOSITORIES },
+      { query: REPOSITORY },
+      { query: REVIEWS },
+      { query: REVIEW },
+      { query: USERS },
+    ],
+  })
+  const navigate = useNavigate()
+
+  const handleDeleteReview = async () => {
+    try {
+      delete_review({ variables: { reviewId: id } })
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  React.useEffect(() => {
+    const prepare = async () => {
+      try {
+        if (data?.deleteReview) {
+          await new Promise((resolve) => setTimeout(resolve, 2000))
+          navigate('/profile')
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    prepare()
+  }, [data?.deleteReview])
+
+  if (loading) {
+    return (
+      <Spinner
+        visible={true}
+        textContent={'Loading...'}
+        textStyle={styles.spinnerTextStyle}
+      />
+    )
+  }
+
+  return (
+    <Button onPress={handleDeleteReview} mode='contained'>
+      Delete review
     </Button>
   )
 }
@@ -55,7 +115,7 @@ const Item = ({ id, reviewText, rating, createdAt, repository }) => {
         </Card.Content>
         <Card.Actions>
           <URLButton url={repoUrl} />
-          <Button buttonColor="red">Delete Repository</Button>
+          <DeleteButton id={id} />
         </Card.Actions>
       </Card>
     </View>
@@ -74,7 +134,7 @@ const Profile = ({ mounted, setErrorMessage }) => {
     setParamsId,
     setReviewName,
     setSorting,
-    setSearch
+    setSearch,
   } = useAuthStorage()
   const { loading, error, data } = useQuery(ME)
 
@@ -90,7 +150,7 @@ const Profile = ({ mounted, setErrorMessage }) => {
       }
     }
     setUser()
-  }, [])
+  }, [mounted, token, setMe])
 
   React.useEffect(() => {
     if (mounted && error) {
@@ -115,7 +175,12 @@ const Profile = ({ mounted, setErrorMessage }) => {
       setSearch(null)
       await AsyncStorage.removeItem('auth')
     } catch (error) {
-      console.error(error)
+      setErrorMessage(error)
+      let timer
+      timer = setTimeout(() => {
+        setErrorMessage('')
+        clearTimeout(timer)
+      }, 9000)
     }
   }
 
@@ -189,7 +254,7 @@ const styles = StyleSheet.create({
     color: '#FFFFF',
   },
   button: {
-    width: '80%',
+    width: '85%',
   },
 })
 

@@ -25,8 +25,7 @@ export const AuthStorageProvider = ({ children }) => {
     sorting,
     setSorting,
     search,
-    setSearch
-
+    setSearch,
   }
 
   return (
@@ -51,7 +50,7 @@ export const useAuthStorage = () => {
     sorting,
     setSorting,
     search,
-    setSearch
+    setSearch,
   } = React.useContext(AuthStorageContext)
   return {
     token,
@@ -67,6 +66,6 @@ export const useAuthStorage = () => {
     sorting,
     setSorting,
     search,
-    setSearch
+    setSearch,
   }
 }

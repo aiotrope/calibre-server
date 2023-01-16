@@ -57,3 +57,13 @@ export const CREATE_REVIEW = gql`
     }
   }
 `
+
+export const DELETE_REVIEW = gql`
+  mutation DELETE_REVIEW($reviewId: String!) {
+    deleteReview(reviewId: $reviewId) {
+      id
+      rating
+      reviewText
+    }
+  }
+`

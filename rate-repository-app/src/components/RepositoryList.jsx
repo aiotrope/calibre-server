@@ -13,7 +13,6 @@ import Spinner from 'react-native-loading-spinner-overlay'
 import { useNavigate, Navigate, Link } from 'react-router-native'
 import pkg from 'lodash'
 import numbro from 'numbro'
-//import moment from 'moment/moment'
 
 import { useAuthStorage } from '../contexts/AuthContext'
 import { REPOSITORIES } from '../graphql/queries'

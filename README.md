@@ -18,3 +18,5 @@ Date: 4.1.2023
 - [Init Signup & Profile](https://github.com/aiotrope/calibre-server/tree/10.9)
 
 - [Implement Auth Custom Hook & Context](https://github.com/aiotrope/calibre-server/tree/10.10)
+
+- [Finalize auth, context, models, schema and styles BE/FE](https://github.com/aiotrope/calibre-server/tree/10.12)

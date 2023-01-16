@@ -377,6 +377,48 @@ export const resolvers = {
         })
       }
     },
+    deleteReview: async (_, args, contextValue) => {
+      const authUser = contextValue.authUser
+      if (!authUser) {
+        throw new GraphQLError('User is not authenticated', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+            http: { status: 401 },
+          },
+        })
+      }
+
+      const byUserReview = await Review.findOne({
+        _id: args.reviewId,
+        user: authUser.id,
+      })
+        .populate('user')
+        .populate('repository')
+
+      if (!byUserReview) {
+        throw new GraphQLError('Cannot processed review delete request!', {
+          extensions: {
+            code: 'BAD_REQUEST',
+            http: { status: 400 },
+            arguementName: args,
+          },
+        })
+      }
+      try {
+        const selectedReview = await Review.findByIdAndDelete(args.reviewId)
+          .populate('user')
+          .populate('repository')
+        return selectedReview
+      } catch (error) {
+        throw new GraphQLError('Cannot processed review delete request!', {
+          extensions: {
+            code: 'BAD_REQUEST',
+            http: { status: 400 },
+            arguementName: args,
+          },
+        })
+      }
+    },
   },
   User: {
     id: async (parent) => {
