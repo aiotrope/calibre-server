@@ -11,7 +11,7 @@ import User from '../models/user.js'
 import Repository from '../models/repository.js'
 import Review from '../models/review.js'
 
-const { meanBy, countBy, filter, includes } = pkg
+const { meanBy, countBy } = pkg
 
 export const resolvers = {
   Query: {
@@ -76,16 +76,54 @@ export const resolvers = {
       const repos = await Repository.find({})
         .populate('user')
         .populate('reviews')
-      let response
       try {
         if (args.searchKeyword) {
-          //response = filter(repos, { fullName: args.searchKeyword })
-          response = filter(repos, (val) =>
-            includes(
-              args.searchKeyword.toUpperCase(),
-              val.fullName.toUpperCase()
-            )
-          )
+          const response = await Repository.find({
+            $or: [
+              {
+                fullName: {
+                  $regex: new RegExp(
+                    '^' + args.searchKeyword.toLowerCase(),
+                    'i'
+                  ),
+                },
+              },
+              {
+                ownerName: {
+                  $regex: new RegExp(
+                    '^' + args.searchKeyword.toLowerCase(),
+                    'i'
+                  ),
+                },
+              },
+              {
+                repositoryName: {
+                  $regex: new RegExp(
+                    '^' + args.searchKeyword.toLowerCase(),
+                    'i'
+                  ),
+                },
+              },
+              {
+                url: {
+                  $regex: new RegExp(
+                    '^' + args.searchKeyword.toLowerCase(),
+                    'i'
+                  ),
+                },
+              },
+              {
+                language: {
+                  $regex: new RegExp(
+                    '^' + args.searchKeyword.toLowerCase(),
+                    'i'
+                  ),
+                },
+              },
+            ],
+          })
+            .populate('user')
+            .populate('reviews')
           return response
         } else {
           return repos
@@ -472,11 +510,11 @@ export const resolvers = {
     },
     createdAt: async (parent) => {
       const obj = await Repository.findById(parent.id)
-      return obj.createdAt.toUTCString()
+      return obj.createdAt.toISOString()
     },
     updatedAt: async (parent) => {
       const obj = await Repository.findById(parent.id)
-      return obj.updatedAt.toUTCString()
+      return obj.updatedAt.toISOString()
     },
 
     user: async (parent) => {
@@ -535,11 +573,11 @@ export const resolvers = {
     },
     createdAt: async (parent) => {
       const obj = await Review.findById(parent.id)
-      return obj.createdAt.toUTCString()
+      return obj.createdAt.toISOString()
     },
     updatedAt: async (parent) => {
       const obj = await Review.findById(parent.id)
-      return obj.updatedAt.toUTCString()
+      return obj.updatedAt.toISOString()
     },
   },
 }

@@ -1,20 +1,16 @@
 import React from 'react'
 import { View, StyleSheet, FlatList } from 'react-native'
-import {
-  Text,
-  Card,
-  Avatar,
-  Divider,
-  DataTable,
-  Chip,
-} from 'react-native-paper'
+import { Card, Avatar, Divider, DataTable, Chip } from 'react-native-paper'
 import { useQuery } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
-import { useNavigate, Navigate, Link } from 'react-router-native'
+import { useNavigate, Link, Redirect } from 'react-router-native'
 import pkg from 'lodash'
 import numbro from 'numbro'
+import moment from 'moment/moment'
+import { useDebounce } from 'use-debounce'
 
 import { useAuthStorage } from '../contexts/AuthContext'
+import { useGeneral } from '../contexts/GeneralContext'
 import { REPOSITORIES } from '../graphql/queries'
 
 const { cloneDeep, orderBy } = pkg
@@ -29,11 +25,12 @@ const Item = ({
   reviewCount,
   forksCount,
   stargazersCount,
+  createdAt,
 }) => {
   const forks = numbro(forksCount).format({ average: true, mantissa: 1 })
   const stars = numbro(stargazersCount).format({ average: true, mantissa: 1 })
   const rating = numbro(ratingAverage).format({ average: true })
-  //const created = moment(createdAt).format('DD.MM.YYYY')
+  const created = moment(createdAt).format('DD.MM.YYYY')
   const lang = `language-${lang}`.toLowerCase()
 
   return (
@@ -50,7 +47,6 @@ const Item = ({
             </Link>
           )}
         />
-
         <Card.Content>
           <View>
             <DataTable>
@@ -76,6 +72,9 @@ const Item = ({
                 <DataTable.Cell>Reviews</DataTable.Cell>
                 <DataTable.Cell>Rating</DataTable.Cell>
               </DataTable.Row>
+              <DataTable.Row>
+                <DataTable.Cell>{created}</DataTable.Cell>
+              </DataTable.Row>
             </DataTable>
           </View>
         </Card.Content>
@@ -86,16 +85,19 @@ const Item = ({
 
 const MemoItem = React.memo(Item)
 
-const RepositoryList = ({ mounted, setErrorMessage }) => {
+const RepositoryList = () => {
   const { token, repos, setRepos, sorting, search } = useAuthStorage()
-  const { loading, error, data } = useQuery(REPOSITORIES, {
-    variables: { searchKeyword: search },
+  const debounce = useDebounce(search, 500)
+  const debounceValue = String(debounce[0])
+  const { loading, error, refetch, data } = useQuery(REPOSITORIES, {
+    variables: { searchKeyword: '' },
   })
+
   const navigate = useNavigate()
+  const { mounted, setErrorMessage } = useGeneral()
 
   React.useEffect(() => {
     const prepare = async () => {
-      if (mounted && !data?.repositories) return <Navigate to={'/signin'} />
       try {
         if (mounted && data?.repositories) {
           setRepos(cloneDeep(data?.repositories))
@@ -109,6 +111,14 @@ const RepositoryList = ({ mounted, setErrorMessage }) => {
     }
     prepare()
   }, [mounted, data?.repositories])
+
+  React.useEffect(() => {
+    if (search !== '' && debounceValue !== undefined) {
+      refetch({ searchKeyword: debounceValue })
+    } else {
+      refetch({ searchKeyword: '' })
+    }
+  }, [search, debounceValue])
 
   React.useEffect(() => {
     if (mounted && error) {
@@ -158,19 +168,20 @@ const RepositoryList = ({ mounted, setErrorMessage }) => {
       createdAt={item.createdAt}
     />
   )
+
+  if (!token) {
+    return <Redirect to="/signin" />
+  }
+
   return (
     <View style={styles.mainContainer}>
-      {token !== null ? (
-        <FlatList
-          data={sorted}
-          initialNumToRender={3}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          ItemSeparatorComponent={Divider}
-        />
-      ) : (
-        <Text>Repository List</Text>
-      )}
+      <FlatList
+        data={sorted}
+        initialNumToRender={3}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        ItemSeparatorComponent={Divider}
+      />
     </View>
   )
 }

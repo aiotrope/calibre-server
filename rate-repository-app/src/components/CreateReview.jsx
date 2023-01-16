@@ -16,6 +16,7 @@ import {
   REVIEW,
 } from '../graphql/queries'
 import { useAuthStorage } from '../contexts/AuthContext'
+import { useGeneral } from '../contexts/GeneralContext'
 
 const initialValues = {
   rating: 0,
@@ -74,7 +75,7 @@ const CreateReviewForm = ({ onSubmit }) => {
   )
 }
 
-const CreateReview = ({ mounted, setErrorMessage }) => {
+const CreateReview = () => {
   const [addReview, { loading, error, data }] = useMutation(CREATE_REVIEW, {
     refetchQueries: [
       { query: ME },
@@ -84,7 +85,7 @@ const CreateReview = ({ mounted, setErrorMessage }) => {
       { query: REVIEW },
     ],
   })
-
+  const { mounted, setErrorMessage } = useGeneral()
   const navigate = useNavigate()
   const { paramsId, reviewName, setParamsId } = useAuthStorage()
 
@@ -94,14 +95,13 @@ const CreateReview = ({ mounted, setErrorMessage }) => {
         if (mounted && data?.createReview) {
           navigate(`/${paramsId}`)
           await new Promise((resolve) => setTimeout(resolve, 3000))
-          
         }
       } catch (error) {
         setErrorMessage(error)
         navigate('/create-review')
         await new Promise((resolve) => setTimeout(resolve, 8000))
         setErrorMessage(error)
-      } 
+      }
     }
     prepare()
   }, [mounted, data?.createReview, navigate, setParamsId, setErrorMessage])

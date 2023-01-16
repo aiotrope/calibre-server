@@ -9,7 +9,7 @@ export const AuthStorageProvider = ({ children }) => {
   const [paramsId, setParamsId] = React.useState(null)
   const [reviewName, setReviewName] = React.useState(null)
   const [sorting, setSorting] = React.useState('latest')
-  const [search, setSearch] = React.useState(null)
+  const [search, setSearch] = React.useState('')
 
   const value = {
     token,

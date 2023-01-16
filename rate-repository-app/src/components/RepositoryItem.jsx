@@ -10,7 +10,7 @@ import {
   Divider,
   Text,
 } from 'react-native-paper'
-import { useParams, useNavigate } from 'react-router-native'
+import { useParams, useNavigate, Redirect } from 'react-router-native'
 import { useQuery } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
 import numbro from 'numbro'
@@ -19,6 +19,7 @@ import pkg from 'lodash'
 
 import { REPOSITORY } from '../graphql/queries'
 import { useAuthStorage } from '../contexts/AuthContext'
+import { useGeneral } from '../contexts/GeneralContext'
 
 const { orderBy } = pkg
 
@@ -67,14 +68,15 @@ const URLButton = ({ url }) => {
   )
 }
 
-const RepositoryItem = ({ mounted, setErrorMessage }) => {
+const RepositoryItem = () => {
   const params = useParams()
   const navigate = useNavigate()
-  const { setParamsId, setReviewName } = useAuthStorage()
+  const { setParamsId, setReviewName, token } = useAuthStorage()
 
   const { loading, error, data } = useQuery(REPOSITORY, {
     variables: { repositoryId: params.id },
   })
+  const { mounted, setErrorMessage } = useGeneral()
 
   React.useEffect(() => {
     const prepareError = async () => {
@@ -130,6 +132,10 @@ const RepositoryItem = ({ mounted, setErrorMessage }) => {
       created={item.createdAt}
     />
   )
+
+  if (!token) {
+    return <Redirect to="/signin" />
+  }
   return (
     <View>
       <Card

@@ -18,6 +18,7 @@ import {
   USERS,
 } from '../graphql/queries'
 import { useAuthStorage } from '../contexts/AuthContext'
+import { useGeneral } from '../contexts/GeneralContext'
 
 const initialValues = {
   username: '',
@@ -76,7 +77,7 @@ const SignInForm = ({ onSubmit }) => {
   )
 }
 
-const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
+const SignIn = () => {
   const { setToken } = useAuthStorage()
   const [login, { loading, error, data }] = useMutation(LOGIN, {
     refetchQueries: [
@@ -90,6 +91,7 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
   })
   const client = useApolloClient()
   const navigate = useNavigate()
+  const { mounted, setErrorMessage, setSuccessMessage } = useGeneral()
 
   React.useEffect(() => {
     const prepare = async () => {
@@ -104,7 +106,6 @@ const SignIn = ({ mounted, setErrorMessage, setSuccessMessage }) => {
             navigate('/')
             setToken(accessToken)
             setSuccessMessage('')
-            
           }
         }
       } catch (error) {

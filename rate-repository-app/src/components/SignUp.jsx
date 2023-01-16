@@ -16,6 +16,7 @@ import {
   REVIEW,
   USERS,
 } from '../graphql/queries'
+import { useGeneral } from '../contexts/GeneralContext'
 
 const initialValues = {
   username: '',
@@ -89,7 +90,7 @@ const SignUpForm = ({ onSubmit }) => {
   )
 }
 
-const SignUp = ({ mounted, setErrorMessage, setSuccessMessage }) => {
+const SignUp = () => {
   const [createUser, { loading, error, data }] = useMutation(SIGNUP, {
     refetchQueries: [
       { query: ME },
@@ -102,6 +103,7 @@ const SignUp = ({ mounted, setErrorMessage, setSuccessMessage }) => {
   })
   const client = useApolloClient()
   const navigate = useNavigate()
+  const { mounted, setErrorMessage, setSuccessMessage } = useGeneral()
 
   React.useEffect(() => {
     const prepare = async () => {

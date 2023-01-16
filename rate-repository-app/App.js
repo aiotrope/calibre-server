@@ -10,9 +10,10 @@ import {
   Provider as PaperProvider,
 } from 'react-native-paper'
 
-import Main from './src/components/Main'
 import createApolloClient from './src/utils/apolloClient'
 import { AuthStorageProvider } from './src/contexts/AuthContext'
+import { GeneralProvider } from './src/contexts/GeneralContext'
+import Main from './src/components/Main'
 
 const apolloClient = createApolloClient()
 
@@ -28,17 +29,20 @@ const theme = {
 const App = () => {
   return (
     <>
-      <NativeRouter>
-        <ApolloProvider client={apolloClient}>
-          <PaperProvider theme={theme}>
+      <ApolloProvider client={apolloClient}>
+        <PaperProvider theme={theme}>
+          <GeneralProvider>
             <AuthStorageProvider>
               <SafeAreaProvider>
-                <Main />
+                <NativeRouter>
+                  <Main />
+                </NativeRouter>
               </SafeAreaProvider>
             </AuthStorageProvider>
-          </PaperProvider>
-        </ApolloProvider>
-      </NativeRouter>
+          </GeneralProvider>
+        </PaperProvider>
+      </ApolloProvider>
+
       <StatusBar style="auto" />
     </>
   )

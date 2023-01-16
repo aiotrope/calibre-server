@@ -3,13 +3,14 @@ import { View, StyleSheet, FlatList, Linking, Alert } from 'react-native'
 import { Text, Button, Card, Badge, Divider } from 'react-native-paper'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useApolloClient, useQuery, useMutation } from '@apollo/client'
-import { Navigate, useNavigate } from 'react-router-native'
+import { Redirect, useNavigate } from 'react-router-native'
 import Spinner from 'react-native-loading-spinner-overlay'
 import numbro from 'numbro'
 import moment from 'moment/moment'
 import pkg from 'lodash'
 
 import { useAuthStorage } from '../contexts/AuthContext'
+import { useGeneral } from '../contexts/GeneralContext'
 import {
   ME,
   REPOSITORIES,
@@ -33,14 +34,18 @@ const URLButton = ({ url }) => {
   }, [url])
 
   return (
-    <Button onPress={handlePress} mode="contained-tonal" style={{ marginRight: 9 }}>
+    <Button
+      onPress={handlePress}
+      mode="contained-tonal"
+      style={{ marginRight: 9 }}
+    >
       View Repository
     </Button>
   )
 }
 
 const DeleteButton = ({ id }) => {
-  const [delete_review, { loading, data }] = useMutation(DELETE_REVIEW, {
+  const [delete_review, { loading, error, data }] = useMutation(DELETE_REVIEW, {
     refetchQueries: [
       { query: ME },
       { query: REPOSITORIES },
@@ -51,6 +56,7 @@ const DeleteButton = ({ id }) => {
     ],
   })
   const navigate = useNavigate()
+  const { setErrorMessage, mounted } = useGeneral()
 
   const handleDeleteReview = async () => {
     try {
@@ -74,6 +80,17 @@ const DeleteButton = ({ id }) => {
     prepare()
   }, [data?.deleteReview])
 
+  React.useEffect(() => {
+    if (mounted && error) {
+      setErrorMessage(error?.message)
+      let timer
+      timer = setTimeout(() => {
+        setErrorMessage('')
+        clearTimeout(timer)
+      }, 9000)
+    }
+  }, [error, mounted, setErrorMessage])
+
   if (loading) {
     return (
       <Spinner
@@ -85,7 +102,7 @@ const DeleteButton = ({ id }) => {
   }
 
   return (
-    <Button onPress={handleDeleteReview} mode='contained'>
+    <Button onPress={handleDeleteReview} mode="contained">
       Delete review
     </Button>
   )
@@ -124,7 +141,7 @@ const Item = ({ id, reviewText, rating, createdAt, repository }) => {
 
 const MemoItem = React.memo(Item)
 
-const Profile = ({ mounted, setErrorMessage }) => {
+const Profile = () => {
   const client = useApolloClient()
   const {
     token,
@@ -137,6 +154,7 @@ const Profile = ({ mounted, setErrorMessage }) => {
     setSearch,
   } = useAuthStorage()
   const { loading, error, data } = useQuery(ME)
+  const { setErrorMessage, mounted } = useGeneral()
 
   React.useEffect(() => {
     const setUser = async () => {
@@ -172,7 +190,7 @@ const Profile = ({ mounted, setErrorMessage }) => {
       setParamsId(null)
       setReviewName(null)
       setSorting('latest')
-      setSearch(null)
+      setSearch('')
       await AsyncStorage.removeItem('auth')
     } catch (error) {
       setErrorMessage(error)
@@ -194,7 +212,7 @@ const Profile = ({ mounted, setErrorMessage }) => {
     )
   }
 
-  if (token === null) return <Navigate to={'/signin'} />
+  if (!token) return <Redirect to={'/signin'} />
 
   const currentUser = data?.me
   const reviewField = currentUser?.reviewsCreated

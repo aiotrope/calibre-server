@@ -14,7 +14,9 @@ const AppBar = () => {
     'Latest repositories'
   )
 
-  const onChangeSearch = (query) => setSearch(query)
+  const onChangeSearch = (query) => {
+    setSearch(query)
+  }
 
   const handlePress = () => setExpanded(!expanded)
 
@@ -63,6 +65,7 @@ const AppBar = () => {
             placeholder="Search"
             onChangeText={onChangeSearch}
             value={search}
+            style={{ textTransform: 'lowercase' }}
           />
           <List.Section>
             <List.Accordion title={accordionTitle} onPress={handlePress}>
