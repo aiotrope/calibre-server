@@ -139,7 +139,7 @@ const CreateReview = () => {
     return (
       <Spinner
         visible={true}
-        textContent={'Logging in...'}
+        textContent={'Submitting...'}
         textStyle={styles.spinnerTextStyle}
       />
     )

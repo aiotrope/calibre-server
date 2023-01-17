@@ -23,6 +23,8 @@ import { DELETE_REVIEW } from '../graphql/mutations'
 
 const { orderBy } = pkg
 
+const Separator = () => <Divider bold="true" />
+
 const URLButton = ({ url }) => {
   const handlePress = React.useCallback(async () => {
     const supported = await Linking.canOpenURL(url)
@@ -114,28 +116,26 @@ const Item = ({ id, reviewText, rating, createdAt, repository }) => {
   const repo = repository.fullName
   const repoUrl = repository.url
   return (
-    <View style={styles.container}>
-      <Card key={id} style={styles.cardContainer}>
-        <Card.Title
-          title={repo}
-          titleStyle={{ fontWeight: 'bold' }}
-          subtitle={created}
-          subtitleNumberOfLines={1000}
-          left={() => (
-            <Badge size={45} style={{ backgroundColor: '#003f5c' }}>
-              {rate}
-            </Badge>
-          )}
-        />
-        <Card.Content>
-          <Text>{reviewText}</Text>
-        </Card.Content>
-        <Card.Actions>
-          <URLButton url={repoUrl} />
-          <DeleteButton id={id} />
-        </Card.Actions>
-      </Card>
-    </View>
+    <Card key={id} style={styles.cardContainer}>
+      <Card.Title
+        title={repo}
+        titleStyle={{ fontWeight: 'bold' }}
+        subtitle={created}
+        subtitleNumberOfLines={1000}
+        left={() => (
+          <Badge size={45} style={{ backgroundColor: '#003f5c' }}>
+            {rate}
+          </Badge>
+        )}
+      />
+      <Card.Content>
+        <Text>{reviewText}</Text>
+      </Card.Content>
+      <Card.Actions>
+        <URLButton url={repoUrl} />
+        <DeleteButton id={id} />
+      </Card.Actions>
+    </Card>
   )
 }
 
@@ -152,6 +152,7 @@ const Profile = () => {
     setReviewName,
     setSorting,
     setSearch,
+    setUserId,
   } = useAuthStorage()
   const { loading, error, data } = useQuery(ME)
   const { setErrorMessage, mounted } = useGeneral()
@@ -191,6 +192,7 @@ const Profile = () => {
       setReviewName(null)
       setSorting('latest')
       setSearch('')
+      setUserId(null)
       await AsyncStorage.removeItem('auth')
     } catch (error) {
       setErrorMessage(error)
@@ -228,51 +230,58 @@ const Profile = () => {
     />
   )
 
-  return (
-    <View style={styles.mainContainer}>
-      <FlatList
-        ListHeaderComponent={
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: 15,
-            }}
-          >
-            <Button onPress={onSignOut} style={styles.button} mode="contained">
-              Log Out
-            </Button>
-          </View>
-        }
-        data={sortReview}
-        initialNumToRender={3}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        ItemSeparatorComponent={Divider}
-      />
+  const headerComponent = () => (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 15,
+      }}
+    >
+      <Button onPress={onSignOut} style={styles.button} mode="contained-tonal">
+        Log Out
+      </Button>
     </View>
+  )
+
+  return (
+    <FlatList
+    contentContainerStyle={{ flexGrow: 1 }}
+      ListHeaderComponent={headerComponent}
+      data={sortReview}
+      initialNumToRender={3}
+      keyExtractor={(item) => item.id}
+      renderItem={renderItem}
+      ItemSeparatorComponent={Separator}
+      onEndReachedThreshold={0.5}
+    />
   )
 }
 
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    minHeight: 3000,
+    flexDirection: 'column',
   },
   container: {
     flex: 1,
   },
   cardContainer: {
     margin: 10,
-    padding: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
   },
 
   spinnerTextStyle: {
     color: '#FFFFF',
   },
+  separator: {
+    height: 10,
+  },
   button: {
     width: '85%',
+    padding: 9,
   },
 })
 

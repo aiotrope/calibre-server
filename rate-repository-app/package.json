@@ -26,6 +26,7 @@
     "numbro": "^2.3.6",
     "react": "18.0.0",
     "react-dom": "18.0.0",
+    "react-intersection-observer": "^9.4.1",
     "react-native": "0.69.6",
     "react-native-actions-sheet-picker": "^0.3.5",
     "react-native-loading-spinner-overlay": "^3.0.1",

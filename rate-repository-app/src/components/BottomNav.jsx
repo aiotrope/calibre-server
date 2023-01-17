@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { Appbar as Bottombar, useTheme } from 'react-native-paper'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigate } from 'react-router-native'
@@ -16,18 +16,21 @@ const BottomNav = () => {
   }
 
   return (
-    <Bottombar
-      style={[
-        styles.bottom,
-        {
-          height: BOTTOM_Bottombar_HEIGHT + bottom,
-          backgroundColor: theme.colors.elevation.level2,
-        },
-      ]}
-      safeAreaInsets={{ bottom }}
-    >
-      <Bottombar.Action icon="home" onPress={onPress} />
-    </Bottombar>
+    <>
+    <View style={{ marginTop: 80 }}></View>
+      <Bottombar
+        style={[
+          styles.bottom,
+          {
+            height: BOTTOM_Bottombar_HEIGHT + bottom,
+            backgroundColor: theme.colors.elevation.level2,
+          },
+        ]}
+        safeAreaInsets={{ bottom }}
+      >
+        <Bottombar.Action icon="home" onPress={onPress} />
+      </Bottombar>
+    </>
   )
 }
 
@@ -38,6 +41,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    marginTop: 120,
   },
   fab: {
     position: 'absolute',

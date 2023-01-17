@@ -78,7 +78,7 @@ const SignInForm = ({ onSubmit }) => {
 }
 
 const SignIn = () => {
-  const { setToken } = useAuthStorage()
+  const { setToken, setUserId } = useAuthStorage()
   const [login, { loading, error, data }] = useMutation(LOGIN, {
     refetchQueries: [
       { query: ME },
@@ -105,6 +105,7 @@ const SignIn = () => {
             await new Promise((resolve) => setTimeout(resolve, 2000))
             navigate('/')
             setToken(accessToken)
+            setUserId(data?.login?.id)
             setSuccessMessage('')
           }
         }

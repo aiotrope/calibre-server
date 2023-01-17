@@ -10,6 +10,7 @@ const httpLink = createHttpLink({
   uri: apolloUri,
 })
 
+
 const createApolloClient = () => {
   const authLink = setContext(async (_, { headers }) => {
     try {
@@ -22,6 +23,7 @@ const createApolloClient = () => {
       }
     } catch (error) {
       console.log(error)
+      return { headers }
     }
   })
   return new ApolloClient({

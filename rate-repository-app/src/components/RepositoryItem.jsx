@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { View, StyleSheet, Linking, Alert, FlatList } from 'react-native'
+import { StyleSheet, Linking, Alert, FlatList } from 'react-native'
 import {
   Button,
   Card,
@@ -11,24 +11,118 @@ import {
   Text,
 } from 'react-native-paper'
 import { useParams, useNavigate, Redirect } from 'react-router-native'
-import { useQuery } from '@apollo/client'
+import { useQuery, useMutation } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
 import numbro from 'numbro'
 import moment from 'moment/moment'
 import pkg from 'lodash'
 
-import { REPOSITORY } from '../graphql/queries'
+import {
+  ME,
+  REPOSITORIES,
+  REPOSITORY,
+  REVIEWS,
+  REVIEW,
+  USERS,
+} from '../graphql/queries'
+import { DELETE_REVIEW } from '../graphql/mutations'
 import { useAuthStorage } from '../contexts/AuthContext'
 import { useGeneral } from '../contexts/GeneralContext'
 
-const { orderBy } = pkg
+const { orderBy, map } = pkg
+
+const URLButton = ({ url }) => {
+  const handlePress = React.useCallback(async () => {
+    const supported = await Linking.canOpenURL(url)
+    if (supported) {
+      await Linking.openURL(url)
+    } else {
+      Alert.alert(`Can't open this URL: ${url}`)
+    }
+  }, [url])
+
+  return (
+    <Button onPress={handlePress} mode="outlined">
+      Open in Github
+    </Button>
+  )
+}
+
+const DeleteReviewButton = ({ id }) => {
+  const [delete_review, { loading, error, data }] = useMutation(DELETE_REVIEW, {
+    refetchQueries: [
+      { query: ME },
+      { query: REPOSITORIES },
+      { query: REPOSITORY },
+      { query: REVIEWS },
+      { query: REVIEW },
+      { query: USERS },
+    ],
+  })
+  const navigate = useNavigate()
+  const { setErrorMessage, mounted } = useGeneral()
+  const { paramsId } = useAuthStorage()
+
+  const handleDeleteReview = async () => {
+    try {
+      delete_review({ variables: { reviewId: id } })
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  React.useEffect(() => {
+    const prepare = async () => {
+      try {
+        if (data?.deleteReview) {
+          await new Promise((resolve) => setTimeout(resolve, 2000))
+          navigate(`/${paramsId}`)
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    prepare()
+  }, [data?.deleteReview])
+
+  React.useEffect(() => {
+    if (mounted && error) {
+      setErrorMessage(error?.message)
+      let timer
+      timer = setTimeout(() => {
+        setErrorMessage('')
+        clearTimeout(timer)
+      }, 9000)
+    }
+  }, [error, mounted, setErrorMessage])
+
+  if (loading) {
+    return (
+      <Spinner
+        visible={true}
+        textContent={'Deleting...'}
+        textStyle={styles.spinnerTextStyle}
+      />
+    )
+  }
+
+  return (
+    <Button onPress={handleDeleteReview} mode="contained">
+      <Text style={{ color: '#FFF', fontWeight: 'bold' }}>
+        Delete your review
+      </Text>
+    </Button>
+  )
+}
 
 const Item = ({ id, reviewText, rating, createdAt, user }) => {
   const rate = numbro(rating).format({ average: true })
   const created = moment(createdAt).format('DD.MM.YYYY')
   const username = user?.username
+  const { userId } = useAuthStorage()
+
   return (
-    <View style={styles.container}>
+    <>
       <Card key={id} style={styles.cardContainer}>
         <Card.Title
           title={`Review by ${username}`}
@@ -44,34 +138,22 @@ const Item = ({ id, reviewText, rating, createdAt, user }) => {
         <Card.Content>
           <Text>{reviewText}</Text>
         </Card.Content>
+        <Card.Actions>
+          {user?.id === userId ? <DeleteReviewButton id={id} /> : null}
+        </Card.Actions>
       </Card>
-    </View>
+    </>
   )
 }
 
 const MemoItem = React.memo(Item)
 
-const URLButton = ({ url }) => {
-  const handlePress = React.useCallback(async () => {
-    const supported = await Linking.canOpenURL(url)
-    if (supported) {
-      await Linking.openURL(url)
-    } else {
-      Alert.alert(`Can't open this URL: ${url}`)
-    }
-  }, [url])
-
-  return (
-    <Button onPress={handlePress} mode="contained">
-      Open in Github
-    </Button>
-  )
-}
+const Separator = () => <Divider bold="true" />
 
 const RepositoryItem = () => {
   const params = useParams()
   const navigate = useNavigate()
-  const { setParamsId, setReviewName, token } = useAuthStorage()
+  const { setParamsId, setReviewName, token, userId } = useAuthStorage()
 
   const { loading, error, data } = useQuery(REPOSITORY, {
     variables: { repositoryId: params.id },
@@ -133,11 +215,11 @@ const RepositoryItem = () => {
     />
   )
 
-  if (!token) {
-    return <Redirect to="/signin" />
-  }
-  return (
-    <View>
+  const reviewerArr = map(reviewField, 'user.id')
+  const reviewer = reviewerArr.includes(userId)
+
+  const headerComponent = () => (
+    <>
       <Card
         key={data?.repository?.id}
         style={styles.cardContainer}
@@ -157,70 +239,82 @@ const RepositoryItem = () => {
         />
 
         <Card.Content>
-          <View>
-            <DataTable>
-              <DataTable.Row style={{ marginTop: 5, marginLeft: 37 }}>
-                <DataTable.Cell>
-                  <Chip
-                    icon={`language-${data?.repository?.language}`.toLowerCase()}
-                    style={{ backgroundColor: '#FFF' }}
-                  >
-                    {data?.repository?.language}
-                  </Chip>
-                </DataTable.Cell>
-              </DataTable.Row>
-              <DataTable.Row>
-                <DataTable.Cell>{stars}</DataTable.Cell>
-                <DataTable.Cell>{forks}</DataTable.Cell>
-                <DataTable.Cell>{reviewCount}</DataTable.Cell>
-                <DataTable.Cell>{rating}</DataTable.Cell>
-              </DataTable.Row>
-              <DataTable.Row>
-                <DataTable.Cell>Stars</DataTable.Cell>
-                <DataTable.Cell>Forks</DataTable.Cell>
-                <DataTable.Cell>Reviews</DataTable.Cell>
-                <DataTable.Cell>Rating</DataTable.Cell>
-              </DataTable.Row>
-            </DataTable>
-          </View>
+          <DataTable>
+            <DataTable.Row style={{ marginTop: 5, marginLeft: 37 }}>
+              <DataTable.Cell>
+                <Chip
+                  icon={`language-${data?.repository?.language}`.toLowerCase()}
+                  style={{ backgroundColor: '#FFF' }}
+                >
+                  {data?.repository?.language}
+                </Chip>
+              </DataTable.Cell>
+            </DataTable.Row>
+            <DataTable.Row>
+              <DataTable.Cell>{stars}</DataTable.Cell>
+              <DataTable.Cell>{forks}</DataTable.Cell>
+              <DataTable.Cell>{reviewCount}</DataTable.Cell>
+              <DataTable.Cell>{rating}</DataTable.Cell>
+            </DataTable.Row>
+            <DataTable.Row>
+              <DataTable.Cell>Stars</DataTable.Cell>
+              <DataTable.Cell>Forks</DataTable.Cell>
+              <DataTable.Cell>Reviews</DataTable.Cell>
+              <DataTable.Cell>Rating</DataTable.Cell>
+            </DataTable.Row>
+          </DataTable>
         </Card.Content>
-        <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-        >
-          <Card.Actions>
-            <URLButton url={data?.repository?.url} />
-            <Button onPress={onReview}>Create a review</Button>
-          </Card.Actions>
-        </View>
+
+        <Card.Actions>
+          <URLButton url={data?.repository?.url} />
+          {!reviewer ? (
+            <Button onPress={onReview} mode="contained">
+              Create a review
+            </Button>
+          ) : null}
+        </Card.Actions>
       </Card>
-      <View style={styles.mainContainer}>
-        <FlatList
-          data={sortReview}
-          initialNumToRender={3}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          ItemSeparatorComponent={Divider}
-        />
-      </View>
-    </View>
+    </>
+  )
+
+  if (!token) {
+    return <Redirect to="/signin" />
+  }
+  return (
+    <>
+      <FlatList
+        contentContainerStyle={{ flexGrow: 1 }}
+        ListHeaderComponent={headerComponent}
+        data={sortReview}
+        initialNumToRender={3}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        ItemSeparatorComponent={Separator}
+        onEndReachedThreshold={0.5}
+      />
+    </>
   )
 }
 
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    minHeight: 3000,
+    flexDirection: 'column',
   },
   container: {
     flex: 1,
   },
   cardContainer: {
     margin: 10,
-    padding: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
   },
 
   spinnerTextStyle: {
     color: '#FFFFF',
+  },
+  separator: {
+    height: 10,
   },
 })
 
