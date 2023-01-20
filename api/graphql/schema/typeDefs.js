@@ -3,8 +3,8 @@ export const typeDefs = `#graphql
         username: String!
         id: ID!
         successSignupMessage: String
-        repositories: [Repository]!
-        reviewsCreated: [Review!]!
+        repositories(first: Int, after: String): RepositoryConnection
+        reviewsCreated(first: Int, after: String): ReviewConnection
     }
 
     type Token {
@@ -13,6 +13,22 @@ export const typeDefs = `#graphql
         username: String!
         successLoginMessage: String!
     }
+
+    type UserEdge {
+        cursor: String
+        node: User
+    }
+
+    type UserPageInfo {
+        endCursor: String
+        hasNextPage: Boolean
+    }
+
+    type UserConnection {
+        pageInfo: UserPageInfo
+        edges: [UserEdge]
+    }
+
 
     type Repository {
         id: ID!
@@ -28,7 +44,7 @@ export const typeDefs = `#graphql
         url: String!
         language: String!
         user: User!
-        reviews: [Review!]!
+        reviews(first: Int, after: String): ReviewConnection!
         createdAt: String!
         updatedAt: String!
     }
@@ -36,6 +52,21 @@ export const typeDefs = `#graphql
     input RepositoryInput {
         ownerName: String!
         repositoryName: String!
+    }
+
+    type RepositoryEdge {
+        cursor: String!
+        node: Repository!
+    }
+
+    type RepositoryPageInfo {
+        endCursor: String!
+        hasNextPage: Boolean!
+    }
+
+    type RepositoryConnection {
+        pageInfo: RepositoryPageInfo!
+        edges: [RepositoryEdge!]!
     }
 
     type Review {
@@ -49,13 +80,28 @@ export const typeDefs = `#graphql
         updatedAt: String!
     }
 
+    type ReviewEdge {
+        cursor: String
+        node: Review
+    }
+
+    type ReviewPageInfo {
+        endCursor: String
+        hasNextPage: Boolean
+    }
+
+    type ReviewConnection {
+        pageInfo: ReviewPageInfo
+        edges: [ReviewEdge]!
+    }
+
     type Query {
-        users: [User]!
+        users(first: Int, after: String): UserConnection!
         me: User!
-        repositories(searchKeyword: String): [Repository!]!
+        repositories(searchKeyword: String, first: Int, after: String): RepositoryConnection!
         repository(id: ID!): Repository!
-        reviews: [Review!]!
-        review(id: ID!): Review!
+        reviews(first: Int, after: String): ReviewConnection!
+        review(id: ID!): Review
     }
 
     type Mutation {

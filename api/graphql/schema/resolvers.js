@@ -1,4 +1,4 @@
-import { jwt_key } from '../utils/config.js'
+import { jwt_key } from '../../utils/config.js'
 import { GraphQLError } from 'graphql'
 import mongoose from 'mongoose'
 import jwt from 'jsonwebtoken'
@@ -7,16 +7,23 @@ import consola from 'consola'
 import pkg from 'lodash'
 import fetch from 'node-fetch'
 
-import User from '../models/user.js'
-import Repository from '../models/repository.js'
-import Review from '../models/review.js'
+import User from '../../models/user.js'
+import Repository from '../../models/repository.js'
+import Review from '../../models/review.js'
 
-const { meanBy, countBy } = pkg
+const { meanBy, countBy, map, slice, findIndex } = pkg
 
 export const resolvers = {
   Query: {
-    users: async (_, __, contextValue) => {
+    users: async (_, args, contextValue) => {
+      const users = await User.find({})
+        .populate('repositories')
+        .populate('reviewsCreated')
+      const countUsers = await User.countDocuments({})
+      let first = 10
+      let after = 0
       const authUser = contextValue.authUser
+
       if (!authUser) {
         throw new GraphQLError('User is not authenticated', {
           extensions: {
@@ -26,12 +33,51 @@ export const resolvers = {
         })
       }
 
-      try {
-        const users = await User.find({})
-          .populate('repositories')
-          .populate('reviewsCreated')
+      if (args.first !== undefined) {
+        const min_val = 1
+        const max_val = 25
 
-        return users
+        if (args.first < min_val || args.first > max_val) {
+          throw new GraphQLError(
+            `${args.first} invalid(min value: ${min_val}, max: ${max_val}) .`,
+            { extensions: { code: 'BAD_USER_INPUT', argumentName: 'first' } }
+          )
+        }
+
+        first = args.first
+      }
+
+      if (args.after !== undefined) {
+        const index = findIndex(users, (i) => i.id === args.after)
+
+        if (index === -1) {
+          throw new GraphQLError(`${args.after} invalid: cursor not found!`, {
+            extensions: { code: 'BAD_USER_INPUT', argumentName: 'after' },
+          })
+        }
+        after = index + 1
+        if (after === countUsers) {
+          throw new GraphQLError(
+            `Invalid ${args.after} value: no items after provided cursor.`,
+            {
+              extensions: { code: 'BAD_USER_INPUT', argumentName: 'after' },
+            }
+          )
+        }
+      }
+
+      try {
+        const returnedUsers = slice(users, after, after + first)
+        const lastUser = returnedUsers[countUsers - 1]
+        return {
+          pageInfo: {
+            endCursor: lastUser.id,
+            hasNextPage: after + first < countUsers,
+          },
+          edges: map(users, function (user) {
+            return { cursor: user.id, node: user }
+          }),
+        }
       } catch (error) {
         throw new GraphQLError(
           `Can't processed users request: ${error.message}!`,
@@ -41,7 +87,7 @@ export const resolvers = {
         )
       }
     },
-    me: async (_, args, contextValue) => {
+    me: async (parent, args, contextValue) => {
       const authUser = contextValue.authUser
       if (!authUser) {
         throw new GraphQLError('User is not authenticated', {
@@ -51,11 +97,81 @@ export const resolvers = {
           },
         })
       }
+      const countRepos = authUser.repositories.length
+      const countReviews = authUser.reviewsCreated.length
+      let first = 10
+      let after = 0
+      if (args.first !== undefined) {
+        const min_val = 1
+        const max_val = 25
+
+        if (args.first < min_val || args.first > max_val) {
+          throw new GraphQLError(
+            `${args.first} invalid(min value: ${min_val}, max: ${max_val}) .`,
+            { extensions: { code: 'BAD_USER_INPUT', argumentName: 'first' } }
+          )
+        }
+
+        first = args.first
+      }
+
+      if (args.after !== undefined) {
+        const index = findIndex(
+          authUser.repositories,
+          (i) => i.id === args.after
+        )
+
+        if (index === -1) {
+          throw new GraphQLError(`${args.after} invalid: cursor not found!`, {
+            extensions: { code: 'BAD_USER_INPUT', argumentName: 'after' },
+          })
+        }
+        after = index + 1
+        if (after === countRepos) {
+          throw new GraphQLError(
+            `Invalid ${args.after} value: no items after provided cursor.`,
+            {
+              extensions: { code: 'BAD_USER_INPUT', argumentName: 'after' },
+            }
+          )
+        }
+      }
       try {
-        return authUser
+        const returnedRepos = slice(authUser.repositories, after, after + first)
+        const returnedReviews = slice(
+          authUser.reviewsCreated,
+          after,
+          after + first
+        )
+        const lastRepo = returnedRepos[countRepos - 1]
+        const lastReview = returnedReviews[countReviews - 1]
+        //console.log(authUser)
+        return {
+          id: authUser.id,
+          username: authUser.username,
+          successSignupMessage: authUser.successSignupMessage,
+          repositories: {
+            pageInfo: {
+              endCursor: lastRepo.id,
+              hasNextPage: after + first < countRepos,
+            },
+            edges: map(authUser.repositories, function (repo) {
+              return { cursor: repo.id, node: repo }
+            }),
+          },
+          reviewsCreated: {
+            pageInfo: {
+              endCursor: lastReview.id,
+              hasNextPage: after + first < countReviews,
+            },
+            edges: map(authUser.reviewsCreated, function (review) {
+              return { cursor: review.id, node: review }
+            }),
+          },
+        }
       } catch (error) {
         throw new GraphQLError(
-          `Can't processed user with ${args.id}: ${error.message}`,
+          `Can't processed users request: ${error.message}!`,
           {
             extensions: { code: 'BAD_REQUEST' },
           }
@@ -64,6 +180,13 @@ export const resolvers = {
     },
     repositories: async (_, args, contextValue) => {
       const authUser = contextValue.authUser
+      const repos = await Repository.find({})
+        .populate('user')
+        .populate('reviews')
+      const countRepos = await Repository.countDocuments({})
+      let first = 10
+      let after = 0
+
       if (!authUser) {
         throw new GraphQLError('User is not authenticated', {
           extensions: {
@@ -73,60 +196,89 @@ export const resolvers = {
         })
       }
 
-      const repos = await Repository.find({})
-        .populate('user')
-        .populate('reviews')
-      try {
-        if (args.searchKeyword) {
-          const response = await Repository.find({
-            $or: [
-              {
-                fullName: {
-                  $regex: new RegExp(
-                    '^' + args.searchKeyword.toLowerCase(),
-                    'i'
-                  ),
-                },
-              },
-              {
-                ownerName: {
-                  $regex: new RegExp(
-                    '^' + args.searchKeyword.toLowerCase(),
-                    'i'
-                  ),
-                },
-              },
-              {
-                repositoryName: {
-                  $regex: new RegExp(
-                    '^' + args.searchKeyword.toLowerCase(),
-                    'i'
-                  ),
-                },
-              },
-              {
-                url: {
-                  $regex: new RegExp(
-                    '^' + args.searchKeyword.toLowerCase(),
-                    'i'
-                  ),
-                },
-              },
-              {
-                language: {
-                  $regex: new RegExp(
-                    '^' + args.searchKeyword.toLowerCase(),
-                    'i'
-                  ),
-                },
-              },
-            ],
+      if (args.first !== null) {
+        const min_val = 1
+        const max_val = 25
+
+        if (args.first < min_val || args.first > max_val) {
+          throw new GraphQLError(
+            `${args.first} invalid(min value: ${min_val}, max: ${max_val}) .`,
+            { extensions: { code: 'BAD_USER_INPUT', argumentName: 'first' } }
+          )
+        }
+
+        first = args.first
+      }
+
+      if (args.after !== null) {
+        const index = findIndex(repos, (i) => i.id === args.after)
+
+        if (index === -1) {
+          throw new GraphQLError(`${args.after} invalid: cursor not found!`, {
+            extensions: { code: 'BAD_USER_INPUT', argumentName: 'after' },
           })
-            .populate('user')
-            .populate('reviews')
-          return response
-        } else {
-          return repos
+        }
+        after = index + 1
+        if (after === countRepos) {
+          throw new GraphQLError(
+            `Invalid ${args.after} value: no items after provided cursor.`,
+            {
+              extensions: { code: 'BAD_USER_INPUT', argumentName: 'after' },
+            }
+          )
+        }
+      }
+
+      if (args.searchKeyword) {
+        const searchRepo = await Repository.find({
+          $or: [
+            {
+              fullName: {
+                $regex: new RegExp('^' + args.searchKeyword.toLowerCase(), 'i'),
+              },
+            },
+            {
+              ownerName: {
+                $regex: new RegExp('^' + args.searchKeyword.toLowerCase(), 'i'),
+              },
+            },
+            {
+              repositoryName: {
+                $regex: new RegExp('^' + args.searchKeyword.toLowerCase(), 'i'),
+              },
+            },
+            {
+              url: {
+                $regex: new RegExp('^' + args.searchKeyword.toLowerCase(), 'i'),
+              },
+            },
+            {
+              language: {
+                $regex: new RegExp('^' + args.searchKeyword.toLowerCase(), 'i'),
+              },
+            },
+          ],
+        })
+          .populate('user')
+          .populate('reviews')
+
+        return {
+          edges: map(searchRepo, function (repo) {
+            return { cursor: repo.id, node: repo }
+          }),
+        }
+      }
+      try {
+        const returnedRepos = slice(repos, after, after + first)
+        const lastRepo = returnedRepos[countRepos - 1]
+        return {
+          pageInfo: {
+            endCursor: lastRepo.id,
+            hasNextPage: after + first < countRepos,
+          },
+          edges: map(repos, function (repo) {
+            return { cursor: repo.id, node: repo }
+          }),
         }
       } catch (error) {
         throw new GraphQLError(
@@ -147,23 +299,97 @@ export const resolvers = {
           },
         })
       }
-      try {
-        const repo = await Repository.findById(args.id)
-          .populate('user')
-          .populate('reviews')
-        return repo
-      } catch (error) {
-        throw new GraphQLError(
-          `Can't processed user with ${args.id}: ${error.message}`,
-          {
-            extensions: { code: 'BAD_REQUEST' },
+
+      const repo = await Repository.findById(args.id)
+        .populate('user')
+        .populate('reviews')
+
+      const countReviews = repo.reviews.length
+      let first = 10
+      let after = 0
+      if (countReviews > 0) {
+        if (args.first !== undefined) {
+          const min_val = 1
+          const max_val = 25
+
+          if (args.first < min_val || args.first > max_val) {
+            throw new GraphQLError(
+              `${args.first} invalid(min value: ${min_val}, max: ${max_val}) .`,
+              { extensions: { code: 'BAD_USER_INPUT', argumentName: 'first' } }
+            )
           }
-        )
+
+          first = args.first
+        }
+
+        if (args.after !== undefined) {
+          const index = findIndex(repo.reviews, (i) => i.id === args.after)
+
+          if (index === -1) {
+            throw new GraphQLError(`${args.after} invalid: cursor not found!`, {
+              extensions: { code: 'BAD_USER_INPUT', argumentName: 'after' },
+            })
+          }
+          after = index + 1
+          if (after === countReviews) {
+            throw new GraphQLError(
+              `Invalid ${args.after} value: no items after provided cursor.`,
+              {
+                extensions: { code: 'BAD_USER_INPUT', argumentName: 'after' },
+              }
+            )
+          }
+        }
+
+        try {
+          const returnedReviews = slice(repo.reviews, after, after + first)
+          const lastReview = returnedReviews[countReviews - 1]
+          return {
+            id: repo.id,
+            ownerName: repo.ownerName,
+            repositoryName: repo.repositoryName,
+            ratingAverage: repo.ratingAverage,
+            reviewCount: repo.reviewCount,
+            forksCount: repo.forksCount,
+            stargazersCount: repo.stargazersCount,
+            avatarUrl: repo.avatarUrl,
+            fullName: repo.fullName,
+            description: repo.description,
+            url: repo.url,
+            language: repo.language,
+            user: repo.user,
+            createdAt: repo.createdAt.toISOString(),
+            updatedAt: repo.updatedAt.toISOString(),
+            reviews: {
+              pageInfo: {
+                endCursor: lastReview.id,
+                hasNextPage: after + first < countReviews,
+              },
+              edges: map(repo.reviews, function (review) {
+                return { cursor: review.id, node: review }
+              }),
+            },
+          }
+        } catch (error) {
+          throw new GraphQLError(
+            `Can't processed users request: ${error.message}!`,
+            {
+              extensions: { code: 'BAD_REQUEST' },
+            }
+          )
+        }
       }
+      return repo
     },
 
-    reviews: async (_, __, contextValue) => {
+    reviews: async (_, args, contextValue) => {
       const authUser = contextValue.authUser
+      const reviews = await Review.find({})
+        .populate('user')
+        .populate('repository')
+      const countReviews = await Review.countDocuments({})
+      let first = 10
+      let after = 0
       if (!authUser) {
         throw new GraphQLError('User is not authenticated', {
           extensions: {
@@ -172,12 +398,51 @@ export const resolvers = {
           },
         })
       }
+      if (args.first !== undefined) {
+        const min_val = 1
+        const max_val = 25
+
+        if (args.first < min_val || args.first > max_val) {
+          throw new GraphQLError(
+            `${args.first} invalid(min value: ${min_val}, max: ${max_val}) .`,
+            { extensions: { code: 'BAD_USER_INPUT', argumentName: 'first' } }
+          )
+        }
+
+        first = args.first
+      }
+
+      if (args.after !== undefined) {
+        const index = findIndex(reviews, (i) => i.id === args.after)
+
+        if (index === -1) {
+          throw new GraphQLError(`${args.after} invalid: cursor not found!`, {
+            extensions: { code: 'BAD_USER_INPUT', argumentName: 'after' },
+          })
+        }
+        after = index + 1
+        if (after === countReviews) {
+          throw new GraphQLError(
+            `Invalid ${args.after} value: no items after provided cursor.`,
+            {
+              extensions: { code: 'BAD_USER_INPUT', argumentName: 'after' },
+            }
+          )
+        }
+      }
 
       try {
-        const reviewsObj = await Review.find({})
-          .populate('user')
-          .populate('repository')
-        return reviewsObj
+        const returnedReviews = slice(reviews, after, after + first)
+        const lastReview = returnedReviews[countReviews - 1]
+        return {
+          pageInfo: {
+            endCursor: lastReview.id,
+            hasNextPage: after + first < countReviews,
+          },
+          edges: map(reviews, function (review) {
+            return { cursor: review.id, node: review }
+          }),
+        }
       } catch (error) {
         throw new GraphQLError(
           `Can't processed users request: ${error.message}!`,
@@ -189,6 +454,10 @@ export const resolvers = {
     },
     review: async (_, args, contextValue) => {
       const authUser = contextValue.authUser
+      const review = await Review.findById(args.id)
+        .populate('user')
+        .populate('repository')
+
       if (!authUser) {
         throw new GraphQLError('User is not authenticated', {
           extensions: {
@@ -198,10 +467,7 @@ export const resolvers = {
         })
       }
       try {
-        const reviewObj = await Review.findById(args.id)
-          .populate('user')
-          .populate('repository')
-        return reviewObj
+        return review
       } catch (error) {
         throw new GraphQLError(
           `Can't processed user with ${args.id}: ${error.message}`,
@@ -472,6 +738,15 @@ export const resolvers = {
       return parent.reviewsCreated
     },
   },
+
+  UserConnection: {
+    pageInfo: async (parent) => {
+      return parent.pageInfo
+    },
+    edges: async (parent) => {
+      return parent.edges
+    },
+  },
   Repository: {
     id: async (parent) => {
       return parent.id
@@ -546,6 +821,14 @@ export const resolvers = {
       return parent.avatarUrl
     },
   },
+  RepositoryConnection: {
+    pageInfo: async (parent) => {
+      return parent.pageInfo
+    },
+    edges: async (parent) => {
+      if (parent.edges) return parent.edges
+    },
+  },
   Review: {
     id: async (parent) => {
       return parent.id
@@ -578,6 +861,14 @@ export const resolvers = {
     updatedAt: async (parent) => {
       const obj = await Review.findById(parent.id)
       return obj.updatedAt.toISOString()
+    },
+  },
+  ReviewConnection: {
+    pageInfo: async (parent) => {
+      return parent.pageInfo
+    },
+    edges: async (parent) => {
+      return parent.edges
     },
   },
 }

@@ -14,8 +14,8 @@ import User from './models/user.js'
 import consola from 'consola'
 import { jwt_key } from './utils/config.js'
 import { port } from './utils/config.js'
-import { typeDefs } from './schema/typeDefs.js'
-import { resolvers } from './schema/resolvers.js'
+import { typeDefs } from './graphql/schema/typeDefs.js'
+import { resolvers } from './graphql/schema/resolvers.js'
 import ConnectDB from './utils/database.js'
 
 ConnectDB()
