@@ -9,6 +9,7 @@ import Profile from './Profile'
 import AddRepository from './AddRepository'
 import CreateReview from './CreateReview'
 import NotFound from './NotFound'
+import SingleReview from './SingleReview'
 import { useAuthStorage } from '../contexts/AuthContext'
 
 const RoutesList = () => {
@@ -39,6 +40,10 @@ const RoutesList = () => {
       <Route
         path="/create-review"
         element={token ? <CreateReview /> : <Navigate to={'/signin'} />}
+      />
+      <Route
+        path="/review/:id"
+        element={token ? <SingleReview /> : <Navigate to={'/signin'} />}
       />
       <Route path="/404" element={<NotFound />} />
       <Route path="*" element={token ? <Navigate to="/" /> : <NotFound />} />

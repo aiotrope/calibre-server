@@ -2,7 +2,7 @@ import * as React from 'react'
 import { View, StyleSheet, FlatList, Linking, Alert } from 'react-native'
 import { Text, Button, Card, Badge, Divider } from 'react-native-paper'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useApolloClient, useQuery, useMutation } from '@apollo/client'
+import { useApolloClient, useQuery } from '@apollo/client'
 import { Redirect, useNavigate } from 'react-router-native'
 import Spinner from 'react-native-loading-spinner-overlay'
 import numbro from 'numbro'
@@ -11,15 +11,7 @@ import pkg from 'lodash'
 
 import { useAuthStorage } from '../contexts/AuthContext'
 import { useGeneral } from '../contexts/GeneralContext'
-import {
-  ME,
-  REPOSITORIES,
-  REPOSITORY,
-  REVIEWS,
-  REVIEW,
-  USERS,
-} from '../graphql/queries'
-import { DELETE_REVIEW } from '../graphql/mutations'
+import { ME } from '../graphql/queries'
 
 const { orderBy } = pkg
 
@@ -46,75 +38,16 @@ const URLButton = ({ url }) => {
   )
 }
 
-const DeleteButton = ({ id }) => {
-  const [delete_review, { loading, error, data }] = useMutation(DELETE_REVIEW, {
-    refetchQueries: [
-      { query: ME },
-      { query: REPOSITORIES },
-      { query: REPOSITORY },
-      { query: REVIEWS },
-      { query: REVIEW },
-      { query: USERS },
-    ],
-  })
-  const navigate = useNavigate()
-  const { setErrorMessage, mounted } = useGeneral()
-
-  const handleDeleteReview = async () => {
-    try {
-      delete_review({ variables: { reviewId: id } })
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  React.useEffect(() => {
-    const prepare = async () => {
-      try {
-        if (data?.deleteReview) {
-          await new Promise((resolve) => setTimeout(resolve, 2000))
-          navigate('/profile')
-        }
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    prepare()
-  }, [data?.deleteReview])
-
-  React.useEffect(() => {
-    if (mounted && error) {
-      setErrorMessage(error?.message)
-      let timer
-      timer = setTimeout(() => {
-        setErrorMessage('')
-        clearTimeout(timer)
-      }, 9000)
-    }
-  }, [error, mounted, setErrorMessage])
-
-  if (loading) {
-    return (
-      <Spinner
-        visible={true}
-        textContent={'Loading...'}
-        textStyle={styles.spinnerTextStyle}
-      />
-    )
-  }
-
-  return (
-    <Button onPress={handleDeleteReview} mode="contained">
-      Delete review
-    </Button>
-  )
-}
-
 const Item = ({ id, reviewText, rating, createdAt, repository }) => {
   const rate = numbro(rating).format({ average: true })
   const created = moment(createdAt).format('DD.MM.YYYY')
   const repo = repository.fullName
   const repoUrl = repository.url
+  const navigate = useNavigate()
+
+  const onSingleReviewPage = () => {
+    navigate(`/review/${id}`)
+  }
   return (
     <Card key={id} style={styles.cardContainer}>
       <Card.Title
@@ -133,7 +66,7 @@ const Item = ({ id, reviewText, rating, createdAt, repository }) => {
       </Card.Content>
       <Card.Actions>
         <URLButton url={repoUrl} />
-        <DeleteButton id={id} />
+        <Button onPress={onSingleReviewPage}>Delete review</Button>
       </Card.Actions>
     </Card>
   )
@@ -247,7 +180,7 @@ const Profile = () => {
       }}
     >
       <Button onPress={onSignOut} style={styles.button} mode="contained-tonal">
-        Log Out
+        Log Out 
       </Button>
     </View>
   )
