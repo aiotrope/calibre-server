@@ -154,7 +154,14 @@ const Profile = () => {
     setSearch,
     setUserId,
   } = useAuthStorage()
-  const { loading, error, data } = useQuery(ME)
+  const { loading, error, data } = useQuery(ME, {
+    variables: {
+      first: null,
+      after: null,
+      reviewsCreatedFirst2: null,
+      reviewsCreatedAfter2: null,
+    },
+  })
   const { setErrorMessage, mounted } = useGeneral()
 
   React.useEffect(() => {
@@ -217,16 +224,16 @@ const Profile = () => {
   if (!token) return <Redirect to={'/signin'} />
 
   const currentUser = data?.me
-  const reviewField = currentUser?.reviewsCreated
-  const sortReview = orderBy(reviewField, ['createdAt'], ['desc'])
+  const reviewField = currentUser?.reviewsCreated?.edges
+  const sortReview = orderBy(reviewField, ['node.createdAt'], ['desc'])
 
   const renderItem = ({ item }) => (
     <MemoItem
-      id={item.id}
-      repository={item.repository}
-      reviewText={item.reviewText}
-      rating={item.rating}
-      created={item.createdAt}
+      id={item.node.id}
+      repository={item.node.repository}
+      reviewText={item.node.reviewText}
+      rating={item.node.rating}
+      created={item.node.createdAt}
     />
   )
 
@@ -247,11 +254,11 @@ const Profile = () => {
 
   return (
     <FlatList
-    contentContainerStyle={{ flexGrow: 1 }}
+      contentContainerStyle={{ flexGrow: 1 }}
       ListHeaderComponent={headerComponent}
       data={sortReview}
-      initialNumToRender={3}
-      keyExtractor={(item) => item.id}
+      initialNumToRender={2}
+      keyExtractor={(item) => item.node.id}
       renderItem={renderItem}
       ItemSeparatorComponent={Separator}
       onEndReachedThreshold={0.5}

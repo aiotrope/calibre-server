@@ -28,7 +28,7 @@ export const AuthStorageProvider = ({ children }) => {
     search,
     setSearch,
     userId,
-    setUserId
+    setUserId,
   }
 
   return (
@@ -55,7 +55,7 @@ export const useAuthStorage = () => {
     search,
     setSearch,
     userId,
-    setUserId
+    setUserId,
   } = React.useContext(AuthStorageContext)
   return {
     token,
@@ -73,6 +73,6 @@ export const useAuthStorage = () => {
     search,
     setSearch,
     userId,
-    setUserId
+    setUserId,
   }
 }

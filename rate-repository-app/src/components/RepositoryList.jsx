@@ -1,25 +1,18 @@
 import React from 'react'
 import { StyleSheet, FlatList } from 'react-native'
-import {
-  Card,
-  Avatar,
-  Divider,
-  DataTable,
-  Chip
-} from 'react-native-paper'
+import { Card, Avatar, Divider, DataTable, Chip } from 'react-native-paper'
 import { useQuery } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
 import { useNavigate, Link, Redirect } from 'react-router-native'
 import pkg from 'lodash'
 import numbro from 'numbro'
-//import moment from 'moment/moment'
 import { useDebounce } from 'use-debounce'
 
 import { useAuthStorage } from '../contexts/AuthContext'
 import { useGeneral } from '../contexts/GeneralContext'
 import { REPOSITORIES } from '../graphql/queries'
 
-const { cloneDeep, orderBy } = pkg
+const { orderBy, cloneDeep, sortBy } = pkg
 
 const Item = ({
   id,
@@ -31,13 +24,13 @@ const Item = ({
   reviewCount,
   forksCount,
   stargazersCount,
-  //createdAt,
 }) => {
   const forks = numbro(forksCount).format({ average: true, mantissa: 1 })
-  const stars = numbro(stargazersCount).format({ average: true, mantissa: 1 })
+  const stars = numbro(stargazersCount).format({
+    average: true,
+    mantissa: 1,
+  })
   const rating = numbro(ratingAverage).format({ average: true })
-  //const created = moment(createdAt).format('DD.MM.YYYY')
-  const lang = `language-${lang}`.toLowerCase()
 
   return (
     <>
@@ -79,9 +72,6 @@ const Item = ({
               <DataTable.Cell>Reviews</DataTable.Cell>
               <DataTable.Cell>Rating</DataTable.Cell>
             </DataTable.Row>
-            {/* <View style={{ display: 'none' }}>
-              <Text>{created}</Text>
-            </View> */}
           </DataTable>
         </Card.Content>
       </Card>
@@ -98,7 +88,7 @@ const RepositoryList = () => {
   const debounce = useDebounce(search, 500)
   const debounceValue = String(debounce[0])
   const { loading, error, refetch, data } = useQuery(REPOSITORIES, {
-    variables: { searchKeyword: '' },
+    variables: { searchKeyword: '', first: null, after: null },
   })
 
   const navigate = useNavigate()
@@ -150,44 +140,44 @@ const RepositoryList = () => {
   }
 
   let sorted
-  if (sorting === 'latest') {
-    sorted = orderBy(repos, ['createdAt'], ['desc'])
-  }
-  if (sorting === 'highest') {
-    sorted = orderBy(repos, ['ratingAverage'], ['desc'])
+  if (sorting === 'LOW') {
+    sorted = sortBy(repos.edges, ['node.ratingAverage'])
   }
 
-  if (sorting === 'lowest') {
-    sorted = orderBy(repos, ['ratingAverage'], ['asc'])
+  if (sorting === 'latest') {
+    sorted = orderBy(repos.edges, ['node.createdAt'], ['desc'])
+  }
+
+  if (sorting === 'highest') {
+    sorted = orderBy(repos.edges, ['node.ratingAverage'], ['desc'])
   }
 
   const renderItem = ({ item }) => (
     <MemoItem
-      id={item.id}
-      fullName={item.fullName}
-      description={item.description}
-      avatarUrl={item.avatarUrl}
-      reviewCount={item.reviewCount}
-      ratingAverage={item.ratingAverage}
-      url={item.url}
-      language={item.language}
-      forksCount={item.forksCount}
-      stargazersCount={item.stargazersCount}
-      createdAt={item.createdAt}
+      id={item.node.id}
+      fullName={item.node.fullName}
+      description={item.node.description}
+      avatarUrl={item.node.avatarUrl}
+      reviewCount={item.node.reviewCount}
+      ratingAverage={item.node.ratingAverage}
+      url={item.node.url}
+      language={item.node.language}
+      forksCount={item.node.forksCount}
+      stargazersCount={item.node.stargazersCount}
+      createdAt={item.node.createdAt}
     />
   )
 
   if (!token) {
     return <Redirect to="/signin" />
   }
-
   return (
     <>
       <FlatList
         contentContainerStyle={{ flexGrow: 1 }}
         data={sorted}
         initialNumToRender={2}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.node.id}
         renderItem={renderItem}
         ItemSeparatorComponent={Separator}
         onEndReachedThreshold={0.5}

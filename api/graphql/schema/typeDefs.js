@@ -44,7 +44,7 @@ export const typeDefs = `#graphql
         url: String!
         language: String!
         user: User!
-        reviews(first: Int, after: String): ReviewConnection!
+        reviews(first: Int, after: String): ReviewConnection
         createdAt: String!
         updatedAt: String!
     }
@@ -65,7 +65,7 @@ export const typeDefs = `#graphql
     }
 
     type RepositoryConnection {
-        pageInfo: RepositoryPageInfo!
+        pageInfo: RepositoryPageInfo
         edges: [RepositoryEdge!]!
     }
 
@@ -92,7 +92,7 @@ export const typeDefs = `#graphql
 
     type ReviewConnection {
         pageInfo: ReviewPageInfo
-        edges: [ReviewEdge]!
+        edges: [ReviewEdge]
     }
 
     type Query {
@@ -100,7 +100,7 @@ export const typeDefs = `#graphql
         me: User!
         repositories(searchKeyword: String, first: Int, after: String): RepositoryConnection!
         repository(id: ID!): Repository!
-        reviews(first: Int, after: String): ReviewConnection!
+        reviews(first: Int, after: String): ReviewConnection
         review(id: ID!): Review
     }
 

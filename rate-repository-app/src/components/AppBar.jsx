@@ -28,12 +28,14 @@ const AppBar = () => {
 
   React.useEffect(() => {
     const prepare = async () => {
+      if (accordionTitle === 'Lowest rated repositories') {
+        setSorting('LOW')
+      }
       if (accordionTitle === 'Latest repositories') {
         setSorting('latest')
-      } else if (accordionTitle === 'Highest rated repositories') {
+      }
+      if (accordionTitle === 'Highest rated repositories') {
         setSorting('highest')
-      } else {
-        setSorting('lowest')
       }
     }
     prepare()
@@ -74,7 +76,7 @@ const AppBar = () => {
                 onPress={() => setAccordionTitle('Latest repositories')}
               />
               <List.Item
-                title="Highest rated Repositories"
+                title="Highest rated repositories"
                 onPress={() => setAccordionTitle('Highest rated repositories')}
               />
               <List.Item

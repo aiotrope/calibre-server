@@ -156,7 +156,7 @@ const RepositoryItem = () => {
   const { setParamsId, setReviewName, token, userId } = useAuthStorage()
 
   const { loading, error, data } = useQuery(REPOSITORY, {
-    variables: { repositoryId: params.id },
+    variables: { repositoryId: params.id, first: null, after: null },
   })
   const { mounted, setErrorMessage } = useGeneral()
 
@@ -202,20 +202,20 @@ const RepositoryItem = () => {
     average: true,
   })
 
-  const reviewField = data?.repository?.reviews
-  const sortReview = orderBy(reviewField, ['createdAt'], ['desc'])
+  const reviewField = data?.repository?.reviews?.edges
+  const sortReview = orderBy(reviewField, ['node.createdAt'], ['desc'])
 
   const renderItem = ({ item }) => (
     <MemoItem
-      id={item.id}
-      user={item.user}
-      reviewText={item.reviewText}
-      rating={item.rating}
-      created={item.createdAt}
+      id={item.node.id}
+      user={item.node.user}
+      reviewText={item.node.reviewText}
+      rating={item.node.rating}
+      created={item.node.createdAt}
     />
   )
 
-  const reviewerArr = map(reviewField, 'user.id')
+  const reviewerArr = map(reviewField, 'node.user.id')
   const reviewer = reviewerArr.includes(userId)
 
   const headerComponent = () => (
@@ -287,7 +287,7 @@ const RepositoryItem = () => {
         ListHeaderComponent={headerComponent}
         data={sortReview}
         initialNumToRender={3}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.node.id}
         renderItem={renderItem}
         ItemSeparatorComponent={Separator}
         onEndReachedThreshold={0.5}
