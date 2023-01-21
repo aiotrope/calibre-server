@@ -4,10 +4,23 @@ import Constants from 'expo-constants'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import { defaultOptions } from './defaultOptions'
+import { relayStylePagination } from '@apollo/client/utilities'
 
 const { apolloUri } = Constants.manifest.extra
+
 const httpLink = createHttpLink({
   uri: apolloUri,
+})
+
+const cache = new InMemoryCache({
+  typePolicies: {
+    Query: {
+      fields: {
+        repositories: relayStylePagination(),
+        repository: relayStylePagination(),
+      },
+    },
+  },
 })
 
 const createApolloClient = () => {
@@ -27,7 +40,7 @@ const createApolloClient = () => {
   })
   return new ApolloClient({
     link: authLink.concat(httpLink),
-    cache: new InMemoryCache(),
+    cache: cache,
     defaultOptions: defaultOptions,
   })
 }

@@ -10,7 +10,7 @@ import {
   Divider,
   Text,
 } from 'react-native-paper'
-import { useParams, useNavigate, Redirect } from 'react-router-native'
+import { useParams, useNavigate } from 'react-router-native'
 import { useQuery, useMutation } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
 import numbro from 'numbro'
@@ -150,15 +150,22 @@ const MemoItem = React.memo(Item)
 
 const Separator = () => <Divider bold="true" />
 
+const first = 10
+
 const RepositoryItem = () => {
   const params = useParams()
   const navigate = useNavigate()
-  const { setParamsId, setReviewName, token, userId } = useAuthStorage()
+  const { setParamsId, setReviewName, userId } = useAuthStorage()
 
-  const { loading, error, data } = useQuery(REPOSITORY, {
-    variables: { repositoryId: params.id, first: null, after: null },
-  })
+  const { loading, error, fetchMore, networkStatus, data } = useQuery(
+    REPOSITORY,
+    {
+      variables: { repositoryId: params.id, first: first, after: null },
+      notifyOnNetworkStatusChange: true,
+    }
+  )
   const { mounted, setErrorMessage } = useGeneral()
+  const isRefetching = networkStatus === 3
 
   React.useEffect(() => {
     const prepareError = async () => {
@@ -177,15 +184,24 @@ const RepositoryItem = () => {
     setReviewName(data?.repository?.repositoryName)
   }
 
-  if (loading) {
-    return (
-      <Spinner
-        visible={true}
-        textContent={'Loading...'}
-        textStyle={styles.spinnerTextStyle}
-      />
-    )
-  }
+  const hasNextPage = data?.repository?.reviews?.pageInfo?.hasNextPage
+  const endCursor = data?.repository?.reviews?.pageInfo?.endCursor
+
+  const loadMoreButton = () => (
+    <>
+      {hasNextPage && (
+        <Button
+          mode="outlined"
+          disabled={isRefetching}
+          loading={isRefetching}
+          onPress={() => fetchMore({ variables: { first, after: endCursor } })}
+        >
+          Load more
+        </Button>
+      )}
+    </>
+  )
+
   const forks = numbro(data?.repository?.forksCount).format({
     average: true,
     mantissa: 1,
@@ -277,9 +293,16 @@ const RepositoryItem = () => {
     </>
   )
 
-  if (!token) {
-    return <Redirect to="/signin" />
+  if (loading || networkStatus === 1 || !data) {
+    return (
+      <Spinner
+        visible={true}
+        textContent={'Loading...'}
+        textStyle={styles.spinnerTextStyle}
+      />
+    )
   }
+
   return (
     <>
       <FlatList
@@ -291,6 +314,7 @@ const RepositoryItem = () => {
         renderItem={renderItem}
         ItemSeparatorComponent={Separator}
         onEndReachedThreshold={0.5}
+        onEndReached={loadMoreButton}
       />
     </>
   )
