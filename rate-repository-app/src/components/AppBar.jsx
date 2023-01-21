@@ -54,7 +54,7 @@ const AppBar = () => {
 
             <Link to={'/add-repository'} underlayColor="none">
               <Text variant="titleMedium" style={styles.middleText}>
-                Create a repository
+                Create Repository
               </Text>
             </Link>
             <Link to={'/profile'} underlayColor="none">

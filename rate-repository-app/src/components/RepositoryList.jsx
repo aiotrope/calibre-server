@@ -1,9 +1,16 @@
 import React from 'react'
 import { StyleSheet, FlatList } from 'react-native'
-import { Card, Avatar, Divider, DataTable, Chip } from 'react-native-paper'
+import {
+  Card,
+  Avatar,
+  Divider,
+  DataTable,
+  Chip,
+  Button,
+} from 'react-native-paper'
 import { useQuery } from '@apollo/client'
 import Spinner from 'react-native-loading-spinner-overlay'
-import { useNavigate, Link, Redirect } from 'react-router-native'
+import { useNavigate, Link } from 'react-router-native'
 import pkg from 'lodash'
 import numbro from 'numbro'
 import { useDebounce } from 'use-debounce'
@@ -83,16 +90,23 @@ const MemoItem = React.memo(Item)
 
 const Separator = () => <Divider bold="true" />
 
+const first = 10
+
 const RepositoryList = () => {
-  const { token, repos, setRepos, sorting, search } = useAuthStorage()
+  const { repos, setRepos, sorting, search } = useAuthStorage()
   const debounce = useDebounce(search, 500)
   const debounceValue = String(debounce[0])
-  const { loading, error, refetch, data } = useQuery(REPOSITORIES, {
-    variables: { searchKeyword: '', first: null, after: null },
-  })
+  const { loading, error, refetch, fetchMore, networkStatus, data } = useQuery(
+    REPOSITORIES,
+    {
+      variables: { searchKeyword: '', first: first, after: null },
+      notifyOnNetworkStatusChange: true,
+    }
+  )
 
   const navigate = useNavigate()
   const { mounted, setErrorMessage } = useGeneral()
+  const isRefetching = networkStatus === 3
 
   React.useEffect(() => {
     const prepare = async () => {
@@ -129,29 +143,6 @@ const RepositoryList = () => {
     }
   }, [error, mounted, setErrorMessage])
 
-  if (loading) {
-    return (
-      <Spinner
-        visible={true}
-        textContent={'Loading...'}
-        textStyle={styles.spinnerTextStyle}
-      />
-    )
-  }
-
-  let sorted
-  if (sorting === 'LOW') {
-    sorted = sortBy(repos.edges, ['node.ratingAverage'])
-  }
-
-  if (sorting === 'latest') {
-    sorted = orderBy(repos.edges, ['node.createdAt'], ['desc'])
-  }
-
-  if (sorting === 'highest') {
-    sorted = orderBy(repos.edges, ['node.ratingAverage'], ['desc'])
-  }
-
   const renderItem = ({ item }) => (
     <MemoItem
       id={item.node.id}
@@ -168,9 +159,47 @@ const RepositoryList = () => {
     />
   )
 
-  if (!token) {
-    return <Redirect to="/signin" />
+  const hasNextPage = data?.repositories?.pageInfo?.hasNextPage
+  const endCursor = data?.repositories?.pageInfo?.endCursor
+
+  const loadMoreButton = () => (
+    <>
+      {hasNextPage && (
+        <Button
+          mode="outlined"
+          disabled={isRefetching}
+          loading={isRefetching}
+          onPress={() => fetchMore({ variables: { first, after: endCursor } })}
+        >
+          Load more
+        </Button>
+      )}
+    </>
+  )
+
+  let sorted
+  if (sorting === 'LOW') {
+    sorted = sortBy(repos.edges, ['node.ratingAverage'])
   }
+
+  if (sorting === 'latest') {
+    sorted = orderBy(repos.edges, ['node.createdAt'], ['desc'])
+  }
+
+  if (sorting === 'highest') {
+    sorted = orderBy(repos.edges, ['node.ratingAverage'], ['desc'])
+  }
+
+  if (loading || networkStatus === 1 || !data) {
+    return (
+      <Spinner
+        visible={true}
+        textContent={'Loading...'}
+        textStyle={styles.spinnerTextStyle}
+      />
+    )
+  }
+
   return (
     <>
       <FlatList
@@ -181,6 +210,7 @@ const RepositoryList = () => {
         renderItem={renderItem}
         ItemSeparatorComponent={Separator}
         onEndReachedThreshold={0.5}
+        onEndReached={loadMoreButton}
       />
     </>
   )
